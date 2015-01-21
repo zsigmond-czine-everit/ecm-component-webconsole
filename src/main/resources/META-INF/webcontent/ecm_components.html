@@ -1,0 +1,48 @@
+<!--
+
+    This file is part of Everit - ECM Component Webconsole.
+
+    Everit - ECM Component Webconsole is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Everit - ECM Component Webconsole is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with Everit - ECM Component Webconsole.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<div data-eht-fragment="'content'" data-eht-render="'content'">
+  <p class="statline ui-state-highlight" data-eht-text="'ECM information: ' + ccMap.size() + ' container(s) in total.'">ECM information: 5 container(s) in total.</p>
+
+  <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
+    <tbody data-eht-foreach="[({'ccEntry', 'ccsrIdx'}) : ccMap.entrySet()]" data-eht-render="'content'"
+      data-eht-var="['cc' : ccMap.get(ccEntry.key)]">
+      <tr>
+        <th class="ui-widget-header" colspan="2"><a
+          data-eht-var="['serviceId' : ccEntry.key.getProperty('service.id')]"
+          data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> - <span
+          data-eht-text="cc.getObjectClassDefinition(null, null).name">Component name</span></th>
+      </tr>
+      <tr data-eht-render="(cc.componentRevisions.length > 0) ? 'all' : 'none'">
+        <th class="col_ServiceId ui-widget-header header">Id</th>
+        <th class="col_Name ui-widget-header header">State</th>
+      </tr>
+      <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.componentRevisions]"
+        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '">
+        <td class="pointer"><div class="ui-icon ui-icon-triangle-1-e subpid">&nbsp;</div>
+          <span data-eht-text="componentRevision.properties.get('service.pid')">Service PID</span></td>
+        <td data-eht-text="componentRevision.state">ACTIVE</td>
+      </tr>
+      <tr>
+        <td colspan="2">&nbsp;</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
