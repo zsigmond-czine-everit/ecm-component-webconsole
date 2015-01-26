@@ -119,6 +119,11 @@
     </dependency>
     <dependency>
       <groupId>org.everit.templating</groupId>
+      <artifactId>org.everit.templating.text</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.everit.templating</groupId>
       <artifactId>org.everit.templating.html</artifactId>
       <version>1.0.0</version>
     </dependency>

@@ -22,8 +22,10 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -34,8 +36,12 @@ import org.everit.expression.ExpressionCompiler;
 import org.everit.expression.ParserConfiguration;
 import org.everit.expression.mvel.MvelExpressionCompiler;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
+import org.everit.osgi.ecm.component.resource.ComponentRevision;
 import org.everit.templating.CompiledTemplate;
+import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
+import org.everit.templating.text.TextTemplateCompiler;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -52,13 +58,21 @@ public class ECMWebConsoleServlet extends HttpServlet {
 
     private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
+    private final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
+
     public ECMWebConsoleServlet(final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
             final ClassLoader classLoader) {
         this.containerTracker = containerTracker;
         this.classLoader = classLoader;
 
         ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
-        HTMLTemplateCompiler htmlTemplateCompiler = new HTMLTemplateCompiler(expressionCompiler);
+
+        TextTemplateCompiler textTemplateCompiler = new TextTemplateCompiler(expressionCompiler);
+
+        Map<String, TemplateCompiler> inlineCompilers = new HashMap<String, TemplateCompiler>();
+        inlineCompilers.put("text", textTemplateCompiler);
+
+        HTMLTemplateCompiler htmlTemplateCompiler = new HTMLTemplateCompiler(expressionCompiler, inlineCompilers);
 
         ParserConfiguration parserConfiguration = new ParserConfiguration(classLoader);
         componentsTemplate = htmlTemplateCompiler.compile(readResource("META-INF/webcontent/ecm_components.html"),
@@ -70,48 +84,86 @@ public class ECMWebConsoleServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
             IOException {
 
-        Object appRoot = req.getAttribute("felix.webconsole.appRoot");
+        resp.setContentType("text/html");
 
         PrintWriter writer = resp.getWriter();
 
-        SortedMap<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> tracked = containerTracker
-                .getTracked();
+        String appRoot = (String) req.getAttribute("felix.webconsole.appRoot");
+        String pluginRoot = (String) req.getAttribute("felix.webconsole.pluginRoot");
+
+        String requestURI = req.getRequestURI();
 
         Map<String, Object> vars = new HashMap<String, Object>();
-        vars.put("ccMap", tracked);
+        vars.put("ccMap", containerTracker.getTracked());
         vars.put("appRoot", appRoot);
+        vars.put("pluginRoot", pluginRoot);
+        vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
 
-        componentsTemplate.render(writer, vars, "content");
-        // writer.write("<table>");
-        //
-        // for (Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry : trackedEntries) {
-        // ServiceReference<ComponentContainer<?>> serviceReference = entry.getKey();
-        // Object serviceId = serviceReference.getProperty("service.id");
-        // ComponentContainer<?> componentContainer = entry.getValue();
-        // ComponentMetadata componentMetadata = componentContainer.getComponentMetadata();
-        //
-        // writer.write("<tr>");
-        // writer.write("<td><a href=\"" + appRoot + "/services/" + serviceId + "\">" + serviceId + "</a></td>");
-        //
-        // writer.write("<td>" + componentMetadata.getComponentId() + "</td>");
-        // writer.write("</tr>");
-        //
-        // ComponentRevision[] componentRevisions = componentContainer.getComponentRevisions();
-        // if (componentRevisions.length > 0) {
-        // writer.write("<tr>");
-        // for (ComponentRevision componentRevision : componentRevisions) {
-        // writer.write("<td>" + componentRevision.getState() + "</td>");
-        // if (componentRevision.getCause() != null) {
-        // StringWriter sw = new StringWriter();
-        // PrintWriter pw = new PrintWriter(sw);
-        // componentRevision.getCause().printStackTrace(pw);
-        // writer.write("<td><pre>" + sw.toString() + "</pre></td>");
-        // }
-        // }
-        // writer.write("</tr>");
-        // }
-        // }
-        // writer.write("</table>");
+        if (requestURI.equals(pluginRoot)) {
+            componentsTemplate.render(writer, vars, "content");
+        } else if (requestURI.endsWith(".fragment")) {
+            String serviceIdAndPid = requestURI.substring(pluginRoot.length() + 1,
+                    requestURI.length() - ".fragment".length());
+            String[] split = serviceIdAndPid.split("\\/");
+
+            ComponentContainer<?> container = findContainerByServiceId(split[0]);
+
+            if (container == null) {
+                resp.setStatus(404);
+                return;
+            }
+
+            ComponentRevision[] revisions = container.getComponentRevisions();
+            ComponentRevision revision = null;
+            if (split.length > 1) {
+                revision = findRevision(revisions, split[1]);
+            } else if (revisions.length == 1) {
+                revision = revisions[0];
+            }
+
+            if (revision == null) {
+                resp.setStatus(404);
+                return;
+            }
+
+            vars.put("revision", revision);
+            vars.put("container", container);
+
+            componentsTemplate.render(writer, vars, "componentRevision");
+        } else {
+            resp.setStatus(404);
+        }
+    }
+
+    private ComponentContainer<?> findContainerByServiceId(
+            final String serviceId) {
+
+        Set<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> entrySet = containerTracker
+                .getTracked().entrySet();
+
+        Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator = entrySet.iterator();
+
+        ComponentContainer<?> result = null;
+
+        while (result == null && iterator.hasNext()) {
+            Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry = iterator.next();
+            ServiceReference<ComponentContainer<?>> serviceReference = entry.getKey();
+            if (serviceId.equals(String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)))) {
+                result = entry.getValue();
+            }
+        }
+        return result;
+    }
+
+    private ComponentRevision findRevision(final ComponentRevision[] revisions, final String servicePid) {
+        ComponentRevision result = null;
+        for (int i = 0; i < revisions.length && result == null; i++) {
+            ComponentRevision componentRevision = revisions[i];
+            if (servicePid.equals(componentRevision.getProperties().get(Constants.SERVICE_PID))) {
+                result = componentRevision;
+            }
+        }
+        return result;
     }
 
     private String readResource(final String resourceName) {
