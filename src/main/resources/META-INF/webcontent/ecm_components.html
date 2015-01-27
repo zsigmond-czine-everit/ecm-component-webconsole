@@ -23,8 +23,8 @@
     information: 5 container(s) in total.</p>
 
   <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
-    <tbody data-eht-foreach="[({'ccEntry', 'ccsrIdx'}) : ccMap.entrySet()]" data-eht-render="'content'"
-      data-eht-var="['cc' : ccMap.get(ccEntry.key), 'serviceId' : ccEntry.key.getProperty('service.id')]">
+    <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
+      data-eht-var="['cc' : ccMap.get(ccSR), 'serviceId' : ccSR.getProperty('service.id')]">
       <tr>
         <th class="ui-widget-header" colspan="2"><a data-eht-var="['serviceId' : serviceId]"
           data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> - <span
@@ -37,7 +37,7 @@
 
       <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.componentRevisions]"
         data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '" data-eht-render="'content'">
-        <td class="pointer"><div class="ui-icon ui-icon-triangle-1-e subpid"
+        <td><div class="ui-icon ui-icon-triangle-1-e subpid"
             data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + serviceId + ')'" title="Details">&nbsp;</div>
           <span data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
           data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service PID</span></td>
@@ -52,25 +52,31 @@
   </table>
 
   <script type="text/javascript" data-eht-inline="'text'">
-      function ecm_components_switchDetailView(htmlElement, containerServiceId) {
-        var jhe = $(htmlElement);
-        if (jhe.hasClass("ui-icon-triangle-1-e")) {
-          jQuery.get("@{pluginRoot}/" + containerServiceId + ".fragment").done(
-              function(data) {
-                jhe.parent().append(data);
-              }).fail(function(data) {
-            alert("Cannot show details. Probably data is out of date.")
-            return false;
-          });
-          jhe.removeClass("ui-icon-triangle-1-e");
-          jhe.addClass("ui-icon-triangle-1-s");
-        } else {
-          jhe.siblings(".componentRevisionInfo").remove()
-          jhe.removeClass("ui-icon-triangle-1-s");
-          jhe.addClass("ui-icon-triangle-1-e");
-        }
-      }
-    </script>
+			function ecm_components_switchDetailView(htmlElement,
+					containerServiceId) {
+				var jhe = $(htmlElement);
+				if (jhe.hasClass("ui-icon-triangle-1-e")) {
+					jQuery
+							.get(
+									"@{pluginRoot}/" + containerServiceId
+											+ ".fragment")
+							.done(function(data) {
+								jhe.parent().append(data);
+							})
+							.fail(
+									function(data) {
+										alert("Cannot show details. Probably data is out of date.")
+										return false;
+									});
+					jhe.removeClass("ui-icon-triangle-1-e");
+					jhe.addClass("ui-icon-triangle-1-s");
+				} else {
+					jhe.siblings(".componentRevisionInfo").remove()
+					jhe.removeClass("ui-icon-triangle-1-s");
+					jhe.addClass("ui-icon-triangle-1-e");
+				}
+			}
+		</script>
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="(template_ctx.fragmentId == 'componentRevision') ? 'all' : 'none'">
@@ -84,13 +90,15 @@
       </tr>
       <tr data-eht-render="(revision.processingThread != null) ? 'all' : 'none'">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
-        <td class="aligntop" style="border: 0px none"
-          data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id - name</td>
+        <td class="aligntop" style="border: 0px none"><a
+          data-eht-attr-href="appRoot + '/threads/' + revision.processingThread.id"
+          data-eht-attr-onclick="(!threadViewerAvailable) ? &quot;alert('To be able to see the state of the thread, Everit Thread Viewer Webconsole plugin should be installed. You can get it from maven central'); return false;&quot; : &quot;&quot;"
+          data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id - name</a></td>
       </tr>
       <tr data-eht-render="(revision.cause != null) ? 'all' : 'none'">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Cause</td>
-        <td class="aligntop" style="border: 0px none"
-          ><pre data-eht-text="exceptionFormatter.format(revision.cause)">Some stacktrace</pre></td>
+        <td class="aligntop" style="border: 0px none"><pre
+            data-eht-text="exceptionFormatter.format(revision.cause)">Some stacktrace</pre></td>
       </tr>
     </table>
   </div>

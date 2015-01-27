@@ -24,7 +24,6 @@ import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ECMWebConsoleActivator implements BundleActivator {
@@ -46,8 +45,7 @@ public class ECMWebConsoleActivator implements BundleActivator {
         containerTracker = new ServiceTracker<ComponentContainer<?>, ComponentContainer<?>>(context, clazz, null);
         containerTracker.open();
 
-        ClassLoader classLoader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        Servlet servlet = new ECMWebConsoleServlet(containerTracker, classLoader);
+        Servlet servlet = new ECMWebConsoleServlet(containerTracker, context);
         servletSR = context.registerService(Servlet.class, servlet, servletProps);
     }
 

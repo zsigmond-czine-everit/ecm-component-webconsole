@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -41,8 +42,11 @@ import org.everit.templating.CompiledTemplate;
 import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
 import org.everit.templating.text.TextTemplateCompiler;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ECMWebConsoleServlet extends HttpServlet {
@@ -51,6 +55,8 @@ public class ECMWebConsoleServlet extends HttpServlet {
      * .
      */
     private static final long serialVersionUID = -187515087668802084L;
+
+    private final BundleContext bundleContext;
 
     private final ClassLoader classLoader;
 
@@ -61,9 +67,10 @@ public class ECMWebConsoleServlet extends HttpServlet {
     private final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
 
     public ECMWebConsoleServlet(final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
-            final ClassLoader classLoader) {
+            final BundleContext bundleContext) {
         this.containerTracker = containerTracker;
-        this.classLoader = classLoader;
+        this.bundleContext = bundleContext;
+        this.classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
 
         ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
 
@@ -78,6 +85,18 @@ public class ECMWebConsoleServlet extends HttpServlet {
         componentsTemplate = htmlTemplateCompiler.compile(readResource("META-INF/webcontent/ecm_components.html"),
                 parserConfiguration);
 
+    }
+
+    private void addThreadViewerAvailablityToVars(final Map<String, Object> vars) throws ServletException {
+        boolean threadViewerAvailable = false;
+        try {
+            threadViewerAvailable = bundleContext.getServiceReferences(Servlet.class.getName(),
+                    "(felix.webconsole.label=threads)") != null;
+        } catch (InvalidSyntaxException e) {
+            throw new ServletException(e);
+        }
+
+        vars.put("threadViewerAvailable", threadViewerAvailable);
     }
 
     @Override
@@ -102,6 +121,8 @@ public class ECMWebConsoleServlet extends HttpServlet {
         if (requestURI.equals(pluginRoot)) {
             componentsTemplate.render(writer, vars, "content");
         } else if (requestURI.endsWith(".fragment")) {
+            addThreadViewerAvailablityToVars(vars);
+
             String serviceIdAndPid = requestURI.substring(pluginRoot.length() + 1,
                     requestURI.length() - ".fragment".length());
             String[] split = serviceIdAndPid.split("\\/");
