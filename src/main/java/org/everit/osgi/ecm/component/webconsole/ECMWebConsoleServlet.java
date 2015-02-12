@@ -47,6 +47,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ECMWebConsoleServlet extends HttpServlet {
@@ -82,6 +83,11 @@ public class ECMWebConsoleServlet extends HttpServlet {
         HTMLTemplateCompiler htmlTemplateCompiler = new HTMLTemplateCompiler(expressionCompiler, inlineCompilers);
 
         ParserConfiguration parserConfiguration = new ParserConfiguration(classLoader);
+
+        Map<String, Class<?>> variableTypes = new HashMap<String, Class<?>>();
+        variableTypes.put("mp", MetaTypeProvider.class);
+        parserConfiguration.setVariableTypes(variableTypes);
+
         componentsTemplate = htmlTemplateCompiler.compile(readResource("META-INF/webcontent/ecm_components.html"),
                 parserConfiguration);
 

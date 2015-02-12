@@ -16,6 +16,7 @@
     along with Everit - ECM Component Webconsole.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
+<!DOCTYPE html>
 
 <div data-eht-fragment="'content'" data-eht-render="'content'">
   <p class="statline ui-state-highlight"
@@ -24,22 +25,24 @@
 
   <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
     <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
-      data-eht-var="['cc' : ccMap.get(ccSR), 'serviceId' : ccSR.getProperty('service.id')]">
+      data-eht-var="['cc' : ccMap.get(ccSR)]">
       <tr>
-        <th class="ui-widget-header" colspan="2"><a data-eht-var="['serviceId' : serviceId]"
+        <th class="ui-widget-header" colspan="2"><a data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
           data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> - <span
-          data-eht-text="cc.getObjectClassDefinition(null, null).name">Component name</span></th>
+          data-eht-var="['mpp' : cc]" data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component
+            name</span></th>
       </tr>
-      <tr data-eht-render="(cc.componentRevisions.length > 0) ? 'all' : 'none'">
+      <tr data-eht-render="(cc.getComponentRevisions().length > 0) ? 'all' : 'none'">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
       </tr>
 
       <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.componentRevisions]"
-        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '" data-eht-render="'content'">
+        data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
+        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '">
         <td><div class="ui-icon ui-icon-triangle-1-e subpid"
-            data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + serviceId + ')'" title="Details">&nbsp;</div>
-          <span data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
+            data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + ccSR.getProperty('service.id') + ', ' + (servicePid != null ? '\'' + servicePid + '\'' : 'null') +')'"
+            title="Details">&nbsp;</div> <span
           data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service PID</span></td>
         <td data-eht-text="componentRevision.state">ACTIVE</td>
       </tr>
@@ -48,18 +51,22 @@
         <td colspan="2">&nbsp;</td>
       </tr>
 
+
     </tbody>
   </table>
 
   <script type="text/javascript" data-eht-inline="'text'">
 			function ecm_components_switchDetailView(htmlElement,
-					containerServiceId) {
+					containerServiceId, servicePid) {
 				var jhe = $(htmlElement);
 				if (jhe.hasClass("ui-icon-triangle-1-e")) {
+					var queryURL = "@{pluginRoot}/" + containerServiceId;
+					if (servicePid != null) {
+						queryURL = queryURL + '/' + servicePid;
+					}
+					queryURL = queryURL + ".fragment";
 					jQuery
-							.get(
-									"@{pluginRoot}/" + containerServiceId
-											+ ".fragment")
+							.get(queryURL)
 							.done(function(data) {
 								jhe.parent().append(data);
 							})
