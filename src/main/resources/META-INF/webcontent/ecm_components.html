@@ -87,13 +87,45 @@
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="(template_ctx.fragmentId == 'componentRevision') ? 'all' : 'none'">
-    <table>
+    <table data-eht-var="['requirements' : revision.getRequirements(null)]">
+      <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'">
+        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Requirements</td>
+      </tr>
+      <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'" data-eht-foreach="['requirement' : requirements]">
+        <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement name</td>
+        <td data-eht-render="(requirement.satisfied) ? 'all' : 'none'" class="aligntop" style="border: 0px none">
+          <ul>
+            <li data-eht-foreach="['wiredCapability' : requirement.wiredCapabilities]"
+              data-eht-var="['isServiceCap' : wiredCapability instanceof org.everit.osgi.ecm.component.resource.ServiceCapability,
+              'isBundleCap' : wiredCapability instanceof org.osgi.framework.wiring.BundleCapability]">
+              <div data-eht-render="(isServiceCap) ? 'content' : 'none'">
+                <p data-eht-var="['serviceRef' : wiredCapability.serviceReference]">
+                  Service: <a data-eht-var="['serviceId' : serviceRef.getProperty('service.id')]"
+                    data-eht-attr-href="appRoot + '/services/' + serviceId"><span data-eht-text="serviceId">Service
+                      Id</span></a><span data-eht-render="(serviceRef.getProperty('service.pid') != null) ? 'all' : 'none'"
+                    data-eht-text="' - ' + serviceRef.getProperty('service.pid')"> - Service PID</span><span
+                    data-eht-render="(serviceRef.getProperty('service.description') != null) ? 'all' : 'none'"
+                    data-eht-text="' - ' + serviceRef.getProperty('service.description')"> - Service Description</span>
+                </p>
+              </div>
+              <p data-eht-render="(isBundleCap) ? 'all' : 'none'">
+                Bundle Capability: <a data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
+                  data-eht-attr-href="appRoot + '/bundles/' + bundleId" data-eht-text="bundleId">Bundle Id</a> - <span
+                  data-eht-text="wiredCapability.revision.symbolicName + ':' + wiredCapability.revision.version">SymbolicName:Version</span>
+              </p>
+              <p data-eht-text="wiredCapability" data-eht-render="(!isServiceCap && !isBundleCap) ? 'all' : 'none'"></p>
+            </li>
+          </ul>
+        </td>
+        <td data-eht-render="(!requirement.satisfied) ? 'all' : 'none'" class="aligntop"
+          style="border: 0px none; color: red;">Unsatisfied</td>
+      </tr>
       <tr>
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Properties</td>
       </tr>
       <tr data-eht-foreach="['propEntry' : revision.properties.entrySet()]">
-        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">name</td>
-        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.value">value</td>
+        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property name</td>
+        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.value">Property value</td>
       </tr>
       <tr data-eht-render="(revision.processingThread != null) ? 'all' : 'none'">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
