@@ -122,6 +122,7 @@ public class ECMWebConsoleServlet extends HttpServlet {
         vars.put("ccMap", containerTracker.getTracked());
         vars.put("appRoot", appRoot);
         vars.put("pluginRoot", pluginRoot);
+        vars.put("templateUtil", new TemplateUtil());
         vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
 
         if (requestURI.equals(pluginRoot)) {
