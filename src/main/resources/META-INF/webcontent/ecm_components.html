@@ -32,12 +32,12 @@
           data-eht-var="['mpp' : cc]" data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component
             name</span></th>
       </tr>
-      <tr data-eht-render="(cc.getComponentRevisions().length > 0) ? 'all' : 'none'">
+      <tr data-eht-render="(cc.resources.length > 0) ? 'all' : 'none'">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
       </tr>
 
-      <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.componentRevisions]"
+      <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
         data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
         data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '">
         <td><div class="ui-icon ui-icon-triangle-1-e subpid"
@@ -87,7 +87,9 @@
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="(template_ctx.fragmentId == 'componentRevision') ? 'all' : 'none'">
-    <table data-eht-var="['requirements' : revision.getRequirements(null)]" class="borderless-table">
+    <table
+      data-eht-var="['requirements' : revision.getRequirements(null), 'capabilities' : revision.getCapabilities(null)]"
+      class="borderless-table">
       <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Requirements</td>
       </tr>
@@ -107,7 +109,7 @@
               data-eht-foreach="[({'wiredCapability', 'wcIndex'}) : requirement.wiredCapabilities]">"<span
               data-eht-text="templateUtil.toString(wiredCapability)"></span><span
               data-eht-render="(isServiceReq) ? 'all' : 'none'"> (<a
-                data-eht-var="['serviceId' : serviceRef.getProperty('service.id')]"
+                data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
                 data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">ServiceId</a>)
             </span><span data-eht-render="(isBundleReq) ? 'all' : 'none'"> (<a
                 data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
@@ -118,7 +120,9 @@
             </span>]
           </p>
         </td>
-        <td data-eht-render="'none'"></td>
+      </tr>
+      <tr data-eht-render="(capabilities.size() > 0) ? 'all' : 'none'">
+        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Capabilities</td>
       </tr>
       <tr>
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Properties</td>

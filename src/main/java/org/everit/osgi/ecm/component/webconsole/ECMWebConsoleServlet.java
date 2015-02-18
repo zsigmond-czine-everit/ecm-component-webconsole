@@ -141,7 +141,7 @@ public class ECMWebConsoleServlet extends HttpServlet {
                 return;
             }
 
-            ComponentRevision[] revisions = container.getComponentRevisions();
+            ComponentRevision[] revisions = container.getResources();
             ComponentRevision revision = null;
             if (split.length > 1) {
                 revision = findRevision(revisions, split[1]);
