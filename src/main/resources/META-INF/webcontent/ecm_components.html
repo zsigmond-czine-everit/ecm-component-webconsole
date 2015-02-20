@@ -94,19 +94,20 @@
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Requirements</td>
       </tr>
       <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'" data-eht-foreach="['requirement' : requirements]"
-        data-eht-var="['isServiceReq' : requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.ecm.component.resource.ServiceCapability',
+        data-eht-var="['isServiceReq' : requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability',
       'isBundleReq' : requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability']">
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement name[0]</td>
         <td>
-          <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'">
+          <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'"
+            data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
             ["Type: <span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
               Type</span>",<span data-eht-render="(isBundleReq) ? 'all' : 'none'"> "Namespace: <span
               data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
             </span> "Directives: <span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
             <span data-eht-render="(requirement.attributes.size() > 0) ? 'all' : 'none'">"Attributes: <span
               data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
-            </span> "Bound capabilities: [<span
-              data-eht-foreach="[({'wiredCapability', 'wcIndex'}) : requirement.wiredCapabilities]">"<span
+            </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
+              data-eht-var="['wiredCapability' : wire.capability]">"<span
               data-eht-text="templateUtil.toString(wiredCapability)"></span><span
               data-eht-render="(isServiceReq) ? 'all' : 'none'"> (<a
                 data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
@@ -116,13 +117,17 @@
                 data-eht-attr-href="appRoot + '/bundles/' + bundleId" data-eht-text="bundleId"
                 data-eht-attr-title="wiredCapability.revision.symbolicName + ':' + wiredCapability.revision.version">Bundle
                   Id</a>)
-            </span>"<span data-eht-render="(wcIndex < requirement.wiredCapabilities.length - 1) ? 'all' : 'none'">, </span>
-            </span>]
+            </span>"<span data-eht-render="(wireIndex < wires.length - 1) ? 'all' : 'none'">, </span>
+            </span>]"
           </p>
         </td>
       </tr>
       <tr data-eht-render="(capabilities.size() > 0) ? 'all' : 'none'">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Capabilities</td>
+      </tr>
+      <tr data-eht-foreach="['capability' : capabilities]">
+        <td class="aligntop" style="border: 0px none">&nbsp;</td>
+        <td class="aligntop" style="border: 0px none" data-eht-text="templateUtil.toString(capability)">[...]</td>
       </tr>
       <tr>
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Properties</td>
