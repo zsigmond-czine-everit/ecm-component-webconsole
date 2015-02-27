@@ -32,7 +32,7 @@
           data-eht-var="['mpp' : cc]" data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component
             name</span></th>
       </tr>
-      <tr data-eht-render="(cc.resources.length > 0) ? 'all' : 'none'">
+      <tr data-eht-render="cc.resources.length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
       </tr>
@@ -86,43 +86,43 @@
 		</script>
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
-    data-eht-render="(template_ctx.fragmentId == 'componentRevision') ? 'all' : 'none'">
+    data-eht-render="template_ctx.fragmentId == 'componentRevision'">
     <table
       data-eht-var="['requirements' : revision.getRequirements(null), 'capabilities' : revision.getCapabilities(null)]"
       class="borderless-table">
-      <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'">
+      <tr data-eht-render="requirements.size() > 0">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Requirements</td>
       </tr>
-      <tr data-eht-render="(requirements.size() > 0) ? 'all' : 'none'" data-eht-foreach="['requirement' : requirements]"
-        data-eht-var="['isServiceReq' : requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability',
-      'isBundleReq' : requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability']">
+      <tr data-eht-render="requirements.size() > 0" data-eht-foreach="['requirement' : requirements]"
+        data-eht-code="var isServiceReq = requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability';
+      isBundleReq = requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability';">
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement name[0]</td>
         <td>
           <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
             ["Type: <span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
-              Type</span>",<span data-eht-render="(isBundleReq) ? 'all' : 'none'"> "Namespace: <span
+              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span
               data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
             </span> "Directives: <span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
-            <span data-eht-render="(requirement.attributes.size() > 0) ? 'all' : 'none'">"Attributes: <span
+            <span data-eht-render="requirement.attributes.size() > 0">"Attributes: <span
               data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
             </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
               data-eht-var="['wiredCapability' : wire.capability]">"<span
               data-eht-text="templateUtil.toString(wiredCapability)"></span><span
-              data-eht-render="(isServiceReq) ? 'all' : 'none'"> (<a
+              data-eht-render="isServiceReq"> (<a
                 data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
                 data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">ServiceId</a>)
-            </span><span data-eht-render="(isBundleReq) ? 'all' : 'none'"> (<a
+            </span><span data-eht-render="isBundleReq"> (<a
                 data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
                 data-eht-attr-href="appRoot + '/bundles/' + bundleId" data-eht-text="bundleId"
                 data-eht-attr-title="wiredCapability.revision.symbolicName + ':' + wiredCapability.revision.version">Bundle
                   Id</a>)
-            </span>"<span data-eht-render="(wireIndex < wires.length - 1) ? 'all' : 'none'">, </span>
+            </span>"<span data-eht-render="wireIndex < wires.length - 1">, </span>
             </span>]"
           </p>
         </td>
       </tr>
-      <tr data-eht-render="(capabilities.size() > 0) ? 'all' : 'none'">
+      <tr data-eht-render="capabilities.size() > 0">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Capabilities</td>
       </tr>
       <tr data-eht-foreach="['capability' : capabilities]">
@@ -137,14 +137,14 @@
         <td class="aligntop" style="border: 0px none" data-eht-text="templateUtil.toString(propEntry.value)">Property
           value</td>
       </tr>
-      <tr data-eht-render="(revision.processingThread != null) ? 'all' : 'none'">
+      <tr data-eht-render="revision.processingThread != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
         <td class="aligntop" style="border: 0px none"><a
           data-eht-attr-href="appRoot + '/threads/' + revision.processingThread.id"
           data-eht-attr-onclick="(!threadViewerAvailable) ? &quot;alert('To be able to see the state of the thread, Everit Thread Viewer Webconsole plugin should be installed. You can get it from maven central'); return false;&quot; : &quot;&quot;"
           data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id - name</a></td>
       </tr>
-      <tr data-eht-render="(revision.cause != null) ? 'all' : 'none'">
+      <tr data-eht-render="revision.cause != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Cause</td>
         <td class="aligntop" style="border: 0px none"><pre
             data-eht-text="exceptionFormatter.format(revision.cause)">Some stacktrace</pre></td>
