@@ -1,18 +1,17 @@
-/**
- * This file is part of Everit - ECM Component Webconsole.
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
  *
- * Everit - ECM Component Webconsole is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Everit - ECM Component Webconsole is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - ECM Component Webconsole.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.everit.osgi.ecm.component.webconsole;
 
@@ -25,98 +24,112 @@ import org.osgi.framework.Bundle;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 
+/**
+ * Util class to show the template.
+ */
 public class TemplateUtil {
 
-    private void appendStateToSBIfMatches(final StringBuilder sb, final int stateMask, final int expectedState,
-            final String stateName) {
-        if ((stateMask & expectedState) > 0) {
-            if (sb.length() > 0) {
-                sb.append("|");
-            }
-            sb.append(stateName);
-        }
+  private void appendStateToSBIfMatches(final StringBuilder sb, final int stateMask,
+      final int expectedState,
+      final String stateName) {
+    if ((stateMask & expectedState) > 0) {
+      if (sb.length() > 0) {
+        sb.append("|");
+      }
+      sb.append(stateName);
     }
+  }
 
-    private String convertClauseToString(final String namespace, final Map<String, String> directives,
-            final Map<String, Object> attributes) {
-        StringBuilder sb = new StringBuilder(namespace);
+  private String convertClauseToString(final String namespace,
+      final Map<String, String> directives,
+      final Map<String, Object> attributes) {
+    StringBuilder sb = new StringBuilder(namespace);
 
-        if (directives.size() > 0) {
-            sb.append(";");
-        }
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, Object> castedDirectives = (Map) directives;
-        sb.append(translateClauseMap(castedDirectives, ":="));
-
-        if (attributes.size() > 0) {
-            sb.append(";");
-        }
-        sb.append(translateClauseMap(attributes, "="));
-        return sb.toString();
+    if (directives.size() > 0) {
+      sb.append(";");
     }
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    Map<String, Object> castedDirectives = (Map) directives;
+    sb.append(translateClauseMap(castedDirectives, ":="));
 
-    private String escapeClauseValue(final String text) {
-        if (text == null) {
-            return "";
-        }
-        return text.replace(";", "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
+    if (attributes.size() > 0) {
+      sb.append(";");
     }
+    sb.append(translateClauseMap(attributes, "="));
+    return sb.toString();
+  }
 
-    public String toString(final Object object) {
-        if (object == null) {
-            return "";
-        }
-        Class<? extends Object> objectType = object.getClass();
-        if (objectType.isArray()) {
-            StringBuilder sb = new StringBuilder("[");
-            int length = Array.getLength(object);
-            for (int i = 0; i < length; i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                }
-                Object entry = Array.get(object, i);
-                if (entry != null) {
-                    sb.append(toString(entry));
-                }
-            }
-            sb.append("]");
-            return sb.toString();
-        }
-        if (object instanceof Capability) {
-            Capability capability = (Capability) object;
-            return convertClauseToString(capability.getNamespace(), capability.getDirectives(),
-                    capability.getAttributes());
-        }
-        if (object instanceof Requirement) {
-            Requirement requirement = (Requirement) object;
-            return convertClauseToString(requirement.getNamespace(), requirement.getDirectives(),
-                    requirement.getAttributes());
-        }
-        return String.valueOf(object);
+  private String escapeClauseValue(final String text) {
+    if (text == null) {
+      return "";
     }
+    return text.replace(";", "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
+  }
 
-    public String translateClauseMap(final Map<String, Object> clauseMap, final String equalExpr) {
-        StringBuilder sb = new StringBuilder();
-        Set<Entry<String, Object>> clauseEntrySet = clauseMap.entrySet();
-        boolean first = true;
-        for (Entry<String, Object> clauseEntry : clauseEntrySet) {
-            if (!first) {
-                sb.append(";");
-            }
-            sb.append(clauseEntry.getKey()).append(equalExpr)
-                    .append(escapeClauseValue(toString(clauseEntry.getValue())));
-            first = false;
-
+  /**
+   * Formats and object to a String as it is shown in requirements and capabilities.
+   */
+  public String toString(final Object object) {
+    if (object == null) {
+      return "";
+    }
+    Class<? extends Object> objectType = object.getClass();
+    if (objectType.isArray()) {
+      StringBuilder sb = new StringBuilder("[");
+      int length = Array.getLength(object);
+      for (int i = 0; i < length; i++) {
+        if (i > 0) {
+          sb.append(", ");
         }
-        return sb.toString();
+        Object entry = Array.get(object, i);
+        if (entry != null) {
+          sb.append(toString(entry));
+        }
+      }
+      sb.append("]");
+      return sb.toString();
     }
+    if (object instanceof Capability) {
+      Capability capability = (Capability) object;
+      return convertClauseToString(capability.getNamespace(), capability.getDirectives(),
+          capability.getAttributes());
+    }
+    if (object instanceof Requirement) {
+      Requirement requirement = (Requirement) object;
+      return convertClauseToString(requirement.getNamespace(), requirement.getDirectives(),
+          requirement.getAttributes());
+    }
+    return String.valueOf(object);
+  }
 
-    public String translateStateMask(final int stateMask) {
-        StringBuilder sb = new StringBuilder();
-        appendStateToSBIfMatches(sb, stateMask, Bundle.RESOLVED, "RESOLVED");
-        appendStateToSBIfMatches(sb, stateMask, Bundle.STARTING, "STARTING");
-        appendStateToSBIfMatches(sb, stateMask, Bundle.ACTIVE, "ACTIVE");
-        appendStateToSBIfMatches(sb, stateMask, Bundle.STOPPING, "STOPPING");
-        return sb.toString();
+  /**
+   * Formats a clause Map to a String.
+   */
+  public String translateClauseMap(final Map<String, Object> clauseMap, final String equalExpr) {
+    StringBuilder sb = new StringBuilder();
+    Set<Entry<String, Object>> clauseEntrySet = clauseMap.entrySet();
+    boolean first = true;
+    for (Entry<String, Object> clauseEntry : clauseEntrySet) {
+      if (!first) {
+        sb.append(";");
+      }
+      sb.append(clauseEntry.getKey()).append(equalExpr)
+          .append(escapeClauseValue(toString(clauseEntry.getValue())));
+      first = false;
+
     }
+    return sb.toString();
+  }
+
+  /**
+   * Translates a Bundle stateMask to a human readable format.
+   */
+  public String translateStateMask(final int stateMask) {
+    StringBuilder sb = new StringBuilder();
+    appendStateToSBIfMatches(sb, stateMask, Bundle.RESOLVED, "RESOLVED");
+    appendStateToSBIfMatches(sb, stateMask, Bundle.STARTING, "STARTING");
+    appendStateToSBIfMatches(sb, stateMask, Bundle.ACTIVE, "ACTIVE");
+    appendStateToSBIfMatches(sb, stateMask, Bundle.STOPPING, "STOPPING");
+    return sb.toString();
+  }
 }

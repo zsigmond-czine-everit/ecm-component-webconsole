@@ -1,18 +1,17 @@
-/**
- * This file is part of Everit - ECM Component Webconsole.
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
  *
- * Everit - ECM Component Webconsole is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Everit - ECM Component Webconsole is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - ECM Component Webconsole.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.everit.osgi.ecm.component.webconsole;
 
@@ -28,8 +27,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,164 +51,200 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class ECMWebConsoleServlet extends HttpServlet {
+/**
+ * Webconsole plugin servlet that shows all ECM components and their states.
+ */
+public class ECMWebConsoleServlet implements Servlet {
 
-    /**
-     * .
-     */
-    private static final long serialVersionUID = -187515087668802084L;
+  private static final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
 
-    private final BundleContext bundleContext;
+  private static final int HTTP_NOT_FOUND = 404;
 
-    private final ClassLoader classLoader;
+  private final BundleContext bundleContext;
 
-    private final CompiledTemplate componentsTemplate;
+  private final ClassLoader classLoader;
 
-    private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
+  private final CompiledTemplate componentsTemplate;
 
-    private final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
+  private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
-    public ECMWebConsoleServlet(final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
-            final BundleContext bundleContext) {
-        this.containerTracker = containerTracker;
-        this.bundleContext = bundleContext;
-        this.classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+  private ServletConfig servletConfig;
 
-        ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
+  /**
+   * Constructor.
+   */
+  public ECMWebConsoleServlet(
+      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
+      final BundleContext bundleContext) {
+    this.containerTracker = containerTracker;
+    this.bundleContext = bundleContext;
+    this.classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
 
-        TextTemplateCompiler textTemplateCompiler = new TextTemplateCompiler(expressionCompiler);
+    ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
 
-        Map<String, TemplateCompiler> inlineCompilers = new HashMap<String, TemplateCompiler>();
-        inlineCompilers.put("text", textTemplateCompiler);
+    TextTemplateCompiler textTemplateCompiler = new TextTemplateCompiler(expressionCompiler);
 
-        HTMLTemplateCompiler htmlTemplateCompiler = new HTMLTemplateCompiler(expressionCompiler, inlineCompilers);
+    Map<String, TemplateCompiler> inlineCompilers = new HashMap<String, TemplateCompiler>();
+    inlineCompilers.put("text", textTemplateCompiler);
 
-        ParserConfiguration parserConfiguration = new ParserConfiguration(classLoader);
+    HTMLTemplateCompiler htmlTemplateCompiler = new HTMLTemplateCompiler(expressionCompiler,
+        inlineCompilers);
 
-        Map<String, Class<?>> variableTypes = new HashMap<String, Class<?>>();
-        variableTypes.put("mp", MetaTypeProvider.class);
-        parserConfiguration.setVariableTypes(variableTypes);
+    ParserConfiguration parserConfiguration = new ParserConfiguration(classLoader);
 
-        componentsTemplate = htmlTemplateCompiler.compile(readResource("META-INF/webcontent/ecm_components.html"),
-                parserConfiguration);
+    Map<String, Class<?>> variableTypes = new HashMap<String, Class<?>>();
+    variableTypes.put("mp", MetaTypeProvider.class);
+    parserConfiguration.setVariableTypes(variableTypes);
 
+    componentsTemplate = htmlTemplateCompiler.compile(
+        readResource("META-INF/webcontent/ecm_components.html"),
+        parserConfiguration);
+
+  }
+
+  private void addThreadViewerAvailablityToVars(final Map<String, Object> vars)
+      throws ServletException {
+    boolean threadViewerAvailable = false;
+    try {
+      threadViewerAvailable = bundleContext.getServiceReferences(Servlet.class.getName(),
+          "(felix.webconsole.label=threads)") != null;
+    } catch (InvalidSyntaxException e) {
+      throw new ServletException(e);
     }
 
-    private void addThreadViewerAvailablityToVars(final Map<String, Object> vars) throws ServletException {
-        boolean threadViewerAvailable = false;
-        try {
-            threadViewerAvailable = bundleContext.getServiceReferences(Servlet.class.getName(),
-                    "(felix.webconsole.label=threads)") != null;
-        } catch (InvalidSyntaxException e) {
-            throw new ServletException(e);
-        }
+    vars.put("threadViewerAvailable", threadViewerAvailable);
+  }
 
-        vars.put("threadViewerAvailable", threadViewerAvailable);
+  @Override
+  public void destroy() {
+  }
+
+  private ComponentContainer<?> findContainerByServiceId(
+      final String serviceId) {
+
+    Set<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> entrySet =
+        containerTracker.getTracked().entrySet();
+
+    Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator =
+        entrySet.iterator();
+
+    ComponentContainer<?> result = null;
+
+    while (result == null && iterator.hasNext()) {
+      Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry = iterator.next();
+      ServiceReference<ComponentContainer<?>> serviceReference = entry.getKey();
+      if (serviceId.equals(String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)))) {
+        result = entry.getValue();
+      }
+    }
+    return result;
+  }
+
+  private ComponentRevision<?> findRevision(final ComponentRevision<?>[] revisions,
+      final String servicePid) {
+    ComponentRevision<?> result = null;
+    for (int i = 0; i < revisions.length && result == null; i++) {
+      ComponentRevision<?> componentRevision = revisions[i];
+      if (servicePid.equals(componentRevision.getProperties().get(Constants.SERVICE_PID))) {
+        result = componentRevision;
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public ServletConfig getServletConfig() {
+    return servletConfig;
+  }
+
+  @Override
+  public String getServletInfo() {
+    return "ECM Component Webconsole Plugin";
+  }
+
+  @Override
+  public void init(final ServletConfig config) throws ServletException {
+    this.servletConfig = config;
+
+  }
+
+  private String readResource(final String resourceName) {
+    InputStream inputStream = classLoader.getResourceAsStream(resourceName);
+    final int bufferSize = 1024;
+
+    byte[] buf = new byte[bufferSize];
+    try {
+      int r = inputStream.read(buf);
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      while (r > -1) {
+        bout.write(buf, 0, r);
+        r = inputStream.read(buf);
+      }
+      return new String(bout.toByteArray(), Charset.forName("UTF8"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
 
-    @Override
-    protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException,
-            IOException {
+  }
 
-        resp.setContentType("text/html");
+  @Override
+  public void service(final ServletRequest req, final ServletResponse resp)
+      throws ServletException, IOException {
 
-        PrintWriter writer = resp.getWriter();
+    HttpServletRequest httpReq = (HttpServletRequest) req;
+    HttpServletResponse httpResp = (HttpServletResponse) resp;
 
-        String appRoot = (String) req.getAttribute("felix.webconsole.appRoot");
-        String pluginRoot = (String) req.getAttribute("felix.webconsole.pluginRoot");
+    httpResp.setContentType("text/html");
 
-        String requestURI = req.getRequestURI();
+    PrintWriter writer = httpResp.getWriter();
 
-        Map<String, Object> vars = new HashMap<String, Object>();
-        vars.put("ccMap", containerTracker.getTracked());
-        vars.put("appRoot", appRoot);
-        vars.put("pluginRoot", pluginRoot);
-        vars.put("templateUtil", new TemplateUtil());
-        vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
+    String appRoot = (String) httpReq.getAttribute("felix.webconsole.appRoot");
+    String pluginRoot = (String) httpReq.getAttribute("felix.webconsole.pluginRoot");
 
-        if (requestURI.equals(pluginRoot)) {
-            componentsTemplate.render(writer, vars, "content");
-        } else if (requestURI.endsWith(".fragment")) {
-            addThreadViewerAvailablityToVars(vars);
+    String requestURI = httpReq.getRequestURI();
 
-            String serviceIdAndPid = requestURI.substring(pluginRoot.length() + 1,
-                    requestURI.length() - ".fragment".length());
-            String[] split = serviceIdAndPid.split("\\/");
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("ccMap", containerTracker.getTracked());
+    vars.put("appRoot", appRoot);
+    vars.put("pluginRoot", pluginRoot);
+    vars.put("templateUtil", new TemplateUtil());
+    vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
 
-            ComponentContainer<?> container = findContainerByServiceId(split[0]);
+    if (requestURI.equals(pluginRoot)) {
+      componentsTemplate.render(writer, vars, "content");
+    } else if (requestURI.endsWith(".fragment")) {
+      addThreadViewerAvailablityToVars(vars);
 
-            if (container == null) {
-                resp.setStatus(404);
-                return;
-            }
+      String serviceIdAndPid = requestURI.substring(pluginRoot.length() + 1,
+          requestURI.length() - ".fragment".length());
+      String[] split = serviceIdAndPid.split("\\/");
 
-            ComponentRevision[] revisions = container.getResources();
-            ComponentRevision revision = null;
-            if (split.length > 1) {
-                revision = findRevision(revisions, split[1]);
-            } else if (revisions.length == 1) {
-                revision = revisions[0];
-            }
+      ComponentContainer<?> container = findContainerByServiceId(split[0]);
 
-            if (revision == null) {
-                resp.setStatus(404);
-                return;
-            }
+      if (container == null) {
+        httpResp.setStatus(HTTP_NOT_FOUND);
+        return;
+      }
 
-            vars.put("revision", revision);
-            vars.put("container", container);
+      ComponentRevision<?>[] revisions = container.getResources();
+      ComponentRevision<?> revision = null;
+      if (split.length > 1) {
+        revision = findRevision(revisions, split[1]);
+      } else if (revisions.length == 1) {
+        revision = revisions[0];
+      }
 
-            componentsTemplate.render(writer, vars, "componentRevision");
-        } else {
-            resp.setStatus(404);
-        }
+      if (revision == null) {
+        httpResp.setStatus(HTTP_NOT_FOUND);
+        return;
+      }
+
+      vars.put("revision", revision);
+      vars.put("container", container);
+
+      componentsTemplate.render(writer, vars, "componentRevision");
+    } else {
+      httpResp.setStatus(HTTP_NOT_FOUND);
     }
-
-    private ComponentContainer<?> findContainerByServiceId(
-            final String serviceId) {
-
-        Set<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> entrySet = containerTracker
-                .getTracked().entrySet();
-
-        Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator = entrySet.iterator();
-
-        ComponentContainer<?> result = null;
-
-        while (result == null && iterator.hasNext()) {
-            Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry = iterator.next();
-            ServiceReference<ComponentContainer<?>> serviceReference = entry.getKey();
-            if (serviceId.equals(String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)))) {
-                result = entry.getValue();
-            }
-        }
-        return result;
-    }
-
-    private ComponentRevision findRevision(final ComponentRevision[] revisions, final String servicePid) {
-        ComponentRevision result = null;
-        for (int i = 0; i < revisions.length && result == null; i++) {
-            ComponentRevision componentRevision = revisions[i];
-            if (servicePid.equals(componentRevision.getProperties().get(Constants.SERVICE_PID))) {
-                result = componentRevision;
-            }
-        }
-        return result;
-    }
-
-    private String readResource(final String resourceName) {
-        InputStream inputStream = classLoader.getResourceAsStream(resourceName);
-        byte[] buf = new byte[1024];
-        try {
-            int r = inputStream.read(buf);
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            while (r > -1) {
-                bout.write(buf, 0, r);
-                r = inputStream.read(buf);
-            }
-            return new String(bout.toByteArray(), Charset.forName("UTF8"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
+  }
 }

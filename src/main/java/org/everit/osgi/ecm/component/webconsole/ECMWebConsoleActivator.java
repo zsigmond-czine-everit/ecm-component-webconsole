@@ -1,18 +1,17 @@
-/**
- * This file is part of Everit - ECM Component Webconsole.
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
  *
- * Everit - ECM Component Webconsole is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Everit - ECM Component Webconsole is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - ECM Component Webconsole.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.everit.osgi.ecm.component.webconsole;
 
@@ -26,33 +25,38 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 
+/**
+ * Bundle Activator of ECM Component Webconsole plugin that registers the plugin servlet.
+ */
 public class ECMWebConsoleActivator implements BundleActivator {
 
-    private ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
-    private ServiceRegistration<Servlet> servletSR;
+  private ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
-    @Override
-    public void start(final BundleContext context) {
-        Hashtable<String, String> servletProps = new Hashtable<String, String>();
-        servletProps.put("felix.webconsole.label", "everit_ecm_component");
-        servletProps.put("felix.webconsole.category", "Everit");
-        servletProps.put("felix.webconsole.title", "ECM Components");
-        servletProps.put("felix.webconsole.css", "res/ui/config.css");
+  private ServiceRegistration<Servlet> servletSR;
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<ComponentContainer<?>> clazz = (Class) ComponentContainer.class;
+  @Override
+  public void start(final BundleContext context) {
+    Hashtable<String, String> servletProps = new Hashtable<String, String>();
+    servletProps.put("felix.webconsole.label", "everit_ecm_component");
+    servletProps.put("felix.webconsole.category", "Everit");
+    servletProps.put("felix.webconsole.title", "ECM Components");
+    servletProps.put("felix.webconsole.css", "res/ui/config.css");
 
-        containerTracker = new ServiceTracker<ComponentContainer<?>, ComponentContainer<?>>(context, clazz, null);
-        containerTracker.open();
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    Class<ComponentContainer<?>> clazz = (Class) ComponentContainer.class;
 
-        Servlet servlet = new ECMWebConsoleServlet(containerTracker, context);
-        servletSR = context.registerService(Servlet.class, servlet, servletProps);
-    }
+    containerTracker = new ServiceTracker<ComponentContainer<?>, ComponentContainer<?>>(context,
+        clazz, null);
+    containerTracker.open();
 
-    @Override
-    public void stop(final BundleContext context) {
-        servletSR.unregister();
-        containerTracker.close();
-    }
+    Servlet servlet = new ECMWebConsoleServlet(containerTracker, context);
+    servletSR = context.registerService(Servlet.class, servlet, servletProps);
+  }
+
+  @Override
+  public void stop(final BundleContext context) {
+    servletSR.unregister();
+    containerTracker.close();
+  }
 
 }
