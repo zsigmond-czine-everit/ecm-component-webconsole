@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,19 @@ package org.everit.osgi.ecm.component.webconsole;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.annotation.Generated;
-
 /**
  * Formats and exception to text that can be written to output.
  */
 public class ExceptionFormatter {
 
   /**
-   * Formats a throwable.
+   * Converts a throwable to a String by calling {@link Throwable#printStackTrace(PrintWriter)}.
+   *
+   * @param throwable
+   *          The {@link Throwable} that should be converted to a {@link String} representation.
+   * 
+   * @return The {@link String} representation of the {@link Throwable}.
    */
-  @Generated("avoid_printstacktrace_check")
   public String format(final Throwable throwable) {
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);

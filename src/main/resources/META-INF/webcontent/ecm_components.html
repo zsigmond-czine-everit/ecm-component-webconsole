@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
+    Copyright (C) 2011 Everit Kft. (http://www.everit.org)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -55,34 +55,30 @@
   </table>
 
   <script type="text/javascript" data-eht-inline="'text'">
-			function ecm_components_switchDetailView(htmlElement,
-					containerServiceId, servicePid) {
-				var jhe = $(htmlElement);
-				if (jhe.hasClass("ui-icon-triangle-1-e")) {
-					var queryURL = "@{pluginRoot}/" + containerServiceId;
-					if (servicePid != null) {
-						queryURL = queryURL + '/' + servicePid;
-					}
-					queryURL = queryURL + ".fragment";
-					jQuery
-							.get(queryURL)
-							.done(function(data) {
-								jhe.parent().append(data);
-							})
-							.fail(
-									function(data) {
-										alert("Cannot show details. Probably data is out of date.")
-										return false;
-									});
-					jhe.removeClass("ui-icon-triangle-1-e");
-					jhe.addClass("ui-icon-triangle-1-s");
-				} else {
-					jhe.siblings(".componentRevisionInfo").remove()
-					jhe.removeClass("ui-icon-triangle-1-s");
-					jhe.addClass("ui-icon-triangle-1-e");
-				}
-			}
-		</script>
+      function ecm_components_switchDetailView(htmlElement, containerServiceId,
+          servicePid) {
+        var jhe = $(htmlElement);
+        if (jhe.hasClass("ui-icon-triangle-1-e")) {
+          var queryURL = "@{pluginRoot}/" + containerServiceId;
+          if (servicePid != null) {
+            queryURL = queryURL + '/' + servicePid;
+          }
+          queryURL = queryURL + ".fragment";
+          jQuery.get(queryURL).done(function(data) {
+            jhe.parent().append(data);
+          }).fail(function(data) {
+            alert("Cannot show details. Probably data is out of date.")
+            return false;
+          });
+          jhe.removeClass("ui-icon-triangle-1-e");
+          jhe.addClass("ui-icon-triangle-1-s");
+        } else {
+          jhe.siblings(".componentRevisionInfo").remove()
+          jhe.removeClass("ui-icon-triangle-1-s");
+          jhe.addClass("ui-icon-triangle-1-e");
+        }
+      }
+    </script>
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="template_ctx.fragmentId == 'componentRevision'">
@@ -100,16 +96,15 @@
           <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
             ["Type: <span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
-              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span
-              data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
+              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span data-eht-text="requirement.namespace">foo</span>",
+              "Statemask: <span data-eht-text="">ACTIVE</span>",
             </span> "Directives: <span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
             <span data-eht-render="requirement.attributes.size() > 0">"Attributes: <span
               data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
             </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
               data-eht-var="['wiredCapability' : wire.capability]">"<span
-              data-eht-text="templateUtil.toString(wiredCapability)"></span><span
-              data-eht-render="isServiceReq"> (<a
-                data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
+              data-eht-text="templateUtil.toString(wiredCapability)"></span><span data-eht-render="isServiceReq">
+                (<a data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
                 data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">ServiceId</a>)
             </span><span data-eht-render="isBundleReq"> (<a
                 data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"

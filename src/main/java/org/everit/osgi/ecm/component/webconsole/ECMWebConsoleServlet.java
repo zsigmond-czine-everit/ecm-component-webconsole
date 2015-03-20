@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,12 @@ public class ECMWebConsoleServlet implements Servlet {
 
   private static final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
 
+  /**
+   * In case there is a fragment suffix in the end of the URI, only the specified
+   * {@link ComponentRevision} is rendered.
+   */
+  private static final String FRAGMENT_URI_SUFFIX = ".fragment";
+
   private static final int HTTP_NOT_FOUND = 404;
 
   private final BundleContext bundleContext;
@@ -72,6 +78,11 @@ public class ECMWebConsoleServlet implements Servlet {
 
   /**
    * Constructor.
+   *
+   * @param containerTracker
+   *          The {@link ServiceTracker} that tracks all {@link ComponentContainer} services.
+   * @param bundleContext
+   *          The context of the bundle that contains this webconsole plugin.
    */
   public ECMWebConsoleServlet(
       final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
@@ -212,11 +223,11 @@ public class ECMWebConsoleServlet implements Servlet {
 
     if (requestURI.equals(pluginRoot)) {
       componentsTemplate.render(writer, vars, "content");
-    } else if (requestURI.endsWith(".fragment")) {
+    } else if (requestURI.endsWith(FRAGMENT_URI_SUFFIX)) {
       addThreadViewerAvailablityToVars(vars);
 
       String serviceIdAndPid = requestURI.substring(pluginRoot.length() + 1,
-          requestURI.length() - ".fragment".length());
+          requestURI.length() - FRAGMENT_URI_SUFFIX.length());
       String[] split = serviceIdAndPid.split("\\/");
 
       ComponentContainer<?> container = findContainerByServiceId(split[0]);

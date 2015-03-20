@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.osgi.resource.Requirement;
  */
 public class TemplateUtil {
 
+  private static final String CLAUSE_SEPARATOR = ";";
+
   private void appendStateToSBIfMatches(final StringBuilder sb, final int stateMask,
       final int expectedState,
       final String stateName) {
@@ -46,14 +48,14 @@ public class TemplateUtil {
     StringBuilder sb = new StringBuilder(namespace);
 
     if (directives.size() > 0) {
-      sb.append(";");
+      sb.append(CLAUSE_SEPARATOR);
     }
     @SuppressWarnings({ "unchecked", "rawtypes" })
     Map<String, Object> castedDirectives = (Map) directives;
     sb.append(translateClauseMap(castedDirectives, ":="));
 
     if (attributes.size() > 0) {
-      sb.append(";");
+      sb.append(CLAUSE_SEPARATOR);
     }
     sb.append(translateClauseMap(attributes, "="));
     return sb.toString();
@@ -63,11 +65,16 @@ public class TemplateUtil {
     if (text == null) {
       return "";
     }
-    return text.replace(";", "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
+    return text.replace(CLAUSE_SEPARATOR, "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
   }
 
   /**
-   * Formats and object to a String as it is shown in requirements and capabilities.
+   * Formats and object to a String as it is shown in requirements and capabilities. The object is
+   * converted in a special way if it is an array, a {@link Requirement} or a {@link Capability}.
+   *
+   * @param object
+   *          The {@link Object} that is translated to a human readable {@link String}.
+   * @return The {@link String} representation of object.
    */
   public String toString(final Object object) {
     if (object == null) {
@@ -103,7 +110,14 @@ public class TemplateUtil {
   }
 
   /**
-   * Formats a clause Map to a String.
+   * Converts a clause Map (Attributes or Directives) to its {@link String} representation.
+   *
+   * @param clauseMap
+   *          Attributes or directives of the clause.
+   * @param equalExpr
+   *          In case of directives this should be ':=', while in case of attributes it should be a
+   *          simple '='.
+   * @return The {@link String} representation of clauseMap.
    */
   public String translateClauseMap(final Map<String, Object> clauseMap, final String equalExpr) {
     StringBuilder sb = new StringBuilder();
@@ -111,7 +125,7 @@ public class TemplateUtil {
     boolean first = true;
     for (Entry<String, Object> clauseEntry : clauseEntrySet) {
       if (!first) {
-        sb.append(";");
+        sb.append(CLAUSE_SEPARATOR);
       }
       sb.append(clauseEntry.getKey()).append(equalExpr)
           .append(escapeClauseValue(toString(clauseEntry.getValue())));
@@ -122,7 +136,13 @@ public class TemplateUtil {
   }
 
   /**
-   * Translates a Bundle stateMask to a human readable format.
+   * Translates a Bundle stateMask to a human readable format. Only {@link Bundle#RESOLVED},
+   * {@link Bundle#STARTING}, {@link Bundle#ACTIVE} and {@link Bundle#STOPPING} states are
+   * translated.
+   *
+   * @param stateMask
+   *          The stateMask of the Bundle.
+   * @return The {@link String} representation of the stateMask. E.g.: 'RESOLVED, STARTING'.
    */
   public String translateStateMask(final int stateMask) {
     StringBuilder sb = new StringBuilder();
