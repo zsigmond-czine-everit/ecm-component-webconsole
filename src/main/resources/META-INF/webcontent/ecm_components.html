@@ -18,6 +18,14 @@
 <!DOCTYPE html>
 
 <div data-eht-fragment="'content'" data-eht-render="'content'">
+  <style>
+    #plugin_table .componentState_UNSATISFIED{
+      color: darkorange;
+    }
+    #plugin_table .componentState_FAILED{
+      color: red;
+    }
+  </style>
   <p class="statline ui-state-highlight"
     data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM component
     information: 5 container(s) in total.</p>
@@ -38,7 +46,7 @@
 
       <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
         data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
-        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '">
+        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '" data-eht-attrappend-class="' componentState_' + componentRevision.state">
         <td><div class="ui-icon ui-icon-triangle-1-e subpid"
             data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + ccSR.getProperty('service.id') + ', ' + (servicePid != null ? '\'' + servicePid + '\'' : 'null') +')'"
             title="Details">&nbsp;</div> <span
