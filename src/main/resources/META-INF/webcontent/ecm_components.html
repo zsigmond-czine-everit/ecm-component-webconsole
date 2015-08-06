@@ -19,47 +19,69 @@
 
 <div data-eht-fragment="'content'" data-eht-render="'content'">
   <style>
-    #plugin_table .componentState_UNSATISFIED{
-      color: darkorange;
-    }
-    #plugin_table .componentState_FAILED{
-      color: red;
-    }
-    #plugin_table .componentState_STARTING{
-      color: purple;
-    }
-    #plugin_table .componentState_STOPPING{
-      color: purple;
-    }
-    #plugin_table .componentState_INACTIVE{
-      color: darkgray;
-    }
-  </style>
+#plugin_table .componentState_UNSATISFIED, .componentState_UNSATISFIED {
+  color: darkorange;
+}
+
+#plugin_table .componentState_FAILED, .componentState_FAILED {
+  color: red;
+}
+
+#plugin_table .componentState_STARTING, .componentState_STARTING {
+  color: purple;
+}
+
+#plugin_table .componentState_STOPPING, .componentState_STOPPING {
+  color: purple;
+}
+
+#plugin_table .componentState_INACTIVE, .componentState_INACTIVE {
+  color: darkgray;
+}
+</style>
   <p class="statline ui-state-highlight"
-    data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM component
-    information: 5 container(s) in total.</p>
+    data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM
+    component information: 5 container(s) in total.</p>
+  <p class="statline ui-state-highlight">
+    <span data-eht-text="'ACTIVE: ' + numberOfComponetntsByState[0]">ACTIVE: 0</span> <span
+      data-eht-text="'UNSATISFIED: ' + numberOfComponetntsByState[1]"
+      data-eht-attrprepend-class="numberOfComponetntsByState[1] > 0 ? 'componentState_UNSATISFIED' : ''">UNSATISFIED:
+      0</span> <span data-eht-text="'FAILED: ' + numberOfComponetntsByState[2]"
+      data-eht-attrprepend-class="numberOfComponetntsByState[2] > 0 ? 'componentState_FAILED' : ''">FAILED:
+      0</span> <span data-eht-text="'STARTING: ' + numberOfComponetntsByState[3]"
+      data-eht-attrprepend-class="numberOfComponetntsByState[3] > 0 ? 'componentState_STARTING' : ''">STARTING:
+      0</span> <span data-eht-text="'STOPPING: ' + numberOfComponetntsByState[4]"
+      data-eht-attrprepend-class="numberOfComponetntsByState[4] > 0 ? 'componentState_STOPPING' : ''">STOPPING:
+      0</span> <span data-eht-text="'INACTIVE: ' + numberOfComponetntsByState[5]"
+      data-eht-attrprepend-class="numberOfComponetntsByState[5] > 0 ? 'componentState_INACTIVE' : ''">INACTIVE:
+      0</span>
+  </p>
 
   <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
     <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
       data-eht-var="['cc' : ccMap.get(ccSR)]">
       <tr>
-        <th class="ui-widget-header" colspan="2"><a data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
-          data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> - <span
-          data-eht-var="['mpp' : cc]" data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component
-            name</span></th>
+        <th class="ui-widget-header" colspan="2"><a
+          data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
+          data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> -
+          <span data-eht-var="['mpp' : cc]"
+          data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component name</span></th>
       </tr>
       <tr data-eht-render="cc.resources.length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
       </tr>
 
-      <tr class="ui-state-default" data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
+      <tr class="ui-state-default"
+        data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
         data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
-        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '" data-eht-attrappend-class="' componentState_' + componentRevision.state">
+        data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '"
+        data-eht-attrappend-class="' componentState_' + componentRevision.state">
         <td><div class="ui-icon ui-icon-triangle-1-e subpid"
             data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + ccSR.getProperty('service.id') + ', ' + (servicePid != null ? '\'' + servicePid + '\'' : 'null') +')'"
             title="Details">&nbsp;</div> <span
-          data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service PID</span></td>
+          data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service
+            PID</span></td>
         <td data-eht-text="componentRevision.state">ACTIVE</td>
       </tr>
 
@@ -103,25 +125,31 @@
       data-eht-var="['requirements' : revision.getRequirements(null), 'capabilities' : revision.getCapabilities(null)]"
       class="borderless-table">
       <tr data-eht-render="requirements.size() > 0">
-        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Requirements</td>
+        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
+          colspan="2">Requirements</td>
       </tr>
-      <tr data-eht-render="requirements.size() > 0" data-eht-foreach="['requirement' : requirements]"
+      <tr data-eht-render="requirements.size() > 0"
+        data-eht-foreach="['requirement' : requirements]"
         data-eht-code="var isServiceReq = requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability';
       isBundleReq = requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability';">
-        <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement name[0]</td>
+        <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
+          name[0]</td>
         <td>
           <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
-            ["Type: <span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
-              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span data-eht-text="requirement.namespace">foo</span>",
-              "Statemask: <span data-eht-text="">ACTIVE</span>",
-            </span> "Directives: <span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
+            ["Type: <span
+              data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
+              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span
+              data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
+            </span> "Directives: <span
+              data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
             <span data-eht-render="requirement.attributes.size() > 0">"Attributes: <span
               data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
             </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
               data-eht-var="['wiredCapability' : wire.capability]">"<span
-              data-eht-text="templateUtil.toString(wiredCapability)"></span><span data-eht-render="isServiceReq">
-                (<a data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
+              data-eht-text="templateUtil.toString(wiredCapability)"></span><span
+              data-eht-render="isServiceReq"> (<a
+                data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
                 data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">ServiceId</a>)
             </span><span data-eht-render="isBundleReq"> (<a
                 data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
@@ -134,26 +162,31 @@
         </td>
       </tr>
       <tr data-eht-render="capabilities.size() > 0">
-        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Capabilities</td>
+        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
+          colspan="2">Capabilities</td>
       </tr>
       <tr data-eht-foreach="['capability' : capabilities]">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" style="border: 0px none" data-eht-text="templateUtil.toString(capability)">[...]</td>
+        <td class="aligntop" style="border: 0px none"
+          data-eht-text="templateUtil.toString(capability)">[...]</td>
       </tr>
       <tr>
-        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;" colspan="2">Properties</td>
+        <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
+          colspan="2">Properties</td>
       </tr>
       <tr data-eht-foreach="['propEntry' : revision.properties.entrySet()]">
-        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property name</td>
-        <td class="aligntop" style="border: 0px none" data-eht-text="templateUtil.toString(propEntry.value)">Property
-          value</td>
+        <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property
+          name</td>
+        <td class="aligntop" style="border: 0px none"
+          data-eht-text="templateUtil.toString(propEntry.value)">Property value</td>
       </tr>
       <tr data-eht-render="revision.processingThread != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
         <td class="aligntop" style="border: 0px none"><a
           data-eht-attr-href="appRoot + '/threads/' + revision.processingThread.id"
           data-eht-attr-onclick="(!threadViewerAvailable) ? &quot;alert('To be able to see the state of the thread, Everit Thread Viewer Webconsole plugin should be installed. You can get it from maven central'); return false;&quot; : &quot;&quot;"
-          data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id - name</a></td>
+          data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id
+            - name</a></td>
       </tr>
       <tr data-eht-render="revision.cause != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Cause</td>
