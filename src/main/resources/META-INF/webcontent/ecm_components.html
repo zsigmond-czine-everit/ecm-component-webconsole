@@ -38,6 +38,15 @@
 #plugin_table .componentState_INACTIVE, .componentState_INACTIVE {
   color: darkgray;
 }
+
+.stacktrace {
+  width: 75vw;
+  overflow: auto;
+}
+
+.col_Name {
+  width: 9vw;
+}
 </style>
   <p class="statline ui-state-highlight"
     data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM
@@ -191,7 +200,7 @@
       <tr data-eht-render="revision.cause != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Cause</td>
         <td class="aligntop" style="border: 0px none"><pre
-            data-eht-text="exceptionFormatter.format(revision.cause)">Some stacktrace</pre></td>
+            data-eht-text="exceptionFormatter.format(revision.cause)" class="stacktrace">Some stacktrace</pre></td>
       </tr>
     </table>
   </div>
