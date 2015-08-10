@@ -58,11 +58,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class ECMWebConsoleServlet implements Servlet {
 
-  private static final int ACTIVE_POSITION = 0;
-
   private static final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
-
-  private static final int FAILED_POSITION = 2;
 
   /**
    * In case there is a fragment suffix in the end of the URI, only the specified
@@ -71,16 +67,6 @@ public class ECMWebConsoleServlet implements Servlet {
   private static final String FRAGMENT_URI_SUFFIX = ".fragment";
 
   private static final int HTTP_NOT_FOUND = 404;
-
-  private static final int INACTIVE_POSITION = 5;
-
-  private static final int NUMBER_OF_RELEVANT_STATES = 6;
-
-  private static final int STARTING_POSITION = 3;
-
-  private static final int STOPPING_POSITION = 4;
-
-  private static final int UNSATISFIED_POSITION = 1;
 
   private final BundleContext bundleContext;
 
@@ -129,25 +115,25 @@ public class ECMWebConsoleServlet implements Servlet {
 
   }
 
-  private int[] addState(final int[] intArray, final ComponentState state) {
+  private ComponentStateSum addState(final ComponentStateSum result, final ComponentState state) {
     switch (state) {
       case ACTIVE:
-        intArray[ACTIVE_POSITION]++;
+        result.setActive(result.getActive() + 1);
         break;
       case UNSATISFIED:
-        intArray[UNSATISFIED_POSITION]++;
+        result.setUnsatisfied(result.getUnsatisfied() + 1);
         break;
       case FAILED:
-        intArray[FAILED_POSITION]++;
+        result.setFailed(result.getFailed() + 1);
         break;
       case STARTING:
-        intArray[STARTING_POSITION]++;
+        result.setStarting(result.getStarting() + 1);
         break;
       case STOPPING:
-        intArray[STOPPING_POSITION]++;
+        result.setStopping(result.getStopping() + 1);
         break;
       case INACTIVE:
-        intArray[INACTIVE_POSITION]++;
+        result.setInactive(result.getInactive() + 1);
         break;
       case FAILED_PERMANENT:
         break;
@@ -156,7 +142,7 @@ public class ECMWebConsoleServlet implements Servlet {
       default:
         break;
     }
-    return intArray;
+    return result;
   }
 
   private void addThreadViewerAvailablityToVars(final Map<String, Object> vars)
@@ -172,9 +158,9 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("threadViewerAvailable", threadViewerAvailable);
   }
 
-  private int[] countStates(
+  private ComponentStateSum countStates(
       final SortedMap<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> ccMap) {
-    int[] result = new int[NUMBER_OF_RELEVANT_STATES];
+    ComponentStateSum result = new ComponentStateSum();
     for (ComponentContainer<?> cc : ccMap.values()) {
       for (ComponentRevision<?> cr : cc.getResources()) {
         result = addState(result, cr.getState());
@@ -272,7 +258,7 @@ public class ECMWebConsoleServlet implements Servlet {
 
     String requestURI = httpReq.getRequestURI();
 
-    int[] numberOfComponetntsByState = countStates(containerTracker.getTracked());
+    ComponentStateSum numberOfComponetntsByState = countStates(containerTracker.getTracked());
 
     Map<String, Object> vars = new HashMap<String, Object>();
     vars.put("ccMap", containerTracker.getTracked());
