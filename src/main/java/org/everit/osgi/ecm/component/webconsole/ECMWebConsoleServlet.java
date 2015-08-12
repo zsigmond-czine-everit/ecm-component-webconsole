@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -39,6 +40,7 @@ import org.everit.expression.ParserConfiguration;
 import org.everit.expression.mvel.MvelExpressionCompiler;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
+import org.everit.osgi.ecm.component.resource.ComponentState;
 import org.everit.templating.CompiledTemplate;
 import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
@@ -89,7 +91,7 @@ public class ECMWebConsoleServlet implements Servlet {
       final BundleContext bundleContext) {
     this.containerTracker = containerTracker;
     this.bundleContext = bundleContext;
-    this.classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+    classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
 
     ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
 
@@ -113,6 +115,36 @@ public class ECMWebConsoleServlet implements Servlet {
 
   }
 
+  private ComponentStateSum addState(final ComponentStateSum result, final ComponentState state) {
+    switch (state) {
+      case ACTIVE:
+        result.setActive(result.getActive() + 1);
+        break;
+      case UNSATISFIED:
+        result.setUnsatisfied(result.getUnsatisfied() + 1);
+        break;
+      case FAILED:
+        result.setFailed(result.getFailed() + 1);
+        break;
+      case STARTING:
+        result.setStarting(result.getStarting() + 1);
+        break;
+      case STOPPING:
+        result.setStopping(result.getStopping() + 1);
+        break;
+      case INACTIVE:
+        result.setInactive(result.getInactive() + 1);
+        break;
+      case FAILED_PERMANENT:
+        break;
+      case UPDATING_CONFIGURATION:
+        break;
+      default:
+        break;
+    }
+    return result;
+  }
+
   private void addThreadViewerAvailablityToVars(final Map<String, Object> vars)
       throws ServletException {
     boolean threadViewerAvailable = false;
@@ -126,6 +158,18 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("threadViewerAvailable", threadViewerAvailable);
   }
 
+  private ComponentStateSum countStates(
+      final SortedMap<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> ccMap) {
+    ComponentStateSum result = new ComponentStateSum();
+    for (ComponentContainer<?> cc : ccMap.values()) {
+      for (ComponentRevision<?> cr : cc.getResources()) {
+        result = addState(result, cr.getState());
+      }
+    }
+
+    return result;
+  }
+
   @Override
   public void destroy() {
   }
@@ -133,15 +177,15 @@ public class ECMWebConsoleServlet implements Servlet {
   private ComponentContainer<?> findContainerByServiceId(
       final String serviceId) {
 
-    Set<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> entrySet =
-        containerTracker.getTracked().entrySet();
+    Set<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> entrySet;
+    entrySet = containerTracker.getTracked().entrySet();
 
-    Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator =
-        entrySet.iterator();
+    Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator;
+    iterator = entrySet.iterator();
 
     ComponentContainer<?> result = null;
 
-    while (result == null && iterator.hasNext()) {
+    while ((result == null) && iterator.hasNext()) {
       Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry = iterator.next();
       ServiceReference<ComponentContainer<?>> serviceReference = entry.getKey();
       if (serviceId.equals(String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)))) {
@@ -154,7 +198,7 @@ public class ECMWebConsoleServlet implements Servlet {
   private ComponentRevision<?> findRevision(final ComponentRevision<?>[] revisions,
       final String servicePid) {
     ComponentRevision<?> result = null;
-    for (int i = 0; i < revisions.length && result == null; i++) {
+    for (int i = 0; (i < revisions.length) && (result == null); i++) {
       ComponentRevision<?> componentRevision = revisions[i];
       if (servicePid.equals(componentRevision.getProperties().get(Constants.SERVICE_PID))) {
         result = componentRevision;
@@ -175,7 +219,7 @@ public class ECMWebConsoleServlet implements Servlet {
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
-    this.servletConfig = config;
+    servletConfig = config;
 
   }
 
@@ -214,12 +258,15 @@ public class ECMWebConsoleServlet implements Servlet {
 
     String requestURI = httpReq.getRequestURI();
 
+    ComponentStateSum numberOfComponetntsByState = countStates(containerTracker.getTracked());
+
     Map<String, Object> vars = new HashMap<String, Object>();
     vars.put("ccMap", containerTracker.getTracked());
     vars.put("appRoot", appRoot);
     vars.put("pluginRoot", pluginRoot);
     vars.put("templateUtil", new TemplateUtil());
     vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
+    vars.put("numberOfComponetntsByState", numberOfComponetntsByState);
 
     if (requestURI.equals(pluginRoot)) {
       componentsTemplate.render(writer, vars, "content");
