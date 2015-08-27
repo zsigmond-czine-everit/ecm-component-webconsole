@@ -40,7 +40,7 @@
 }
 
 .stacktrace {
-  width: 75vw;
+  width: 65vw;
   overflow: auto;
 }
 
@@ -70,7 +70,7 @@
     <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
       data-eht-var="['cc' : ccMap.get(ccSR)]">
       <tr>
-        <th class="ui-widget-header" colspan="2"><a
+        <th class="ui-widget-header" colspan="3"><a
           data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
           data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> -
           <span data-eht-var="['mpp' : cc]"
@@ -79,6 +79,7 @@
       <tr data-eht-render="cc.resources.length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
+        <th class="col_Name ui-widget-header header">Configuration</th>
       </tr>
 
       <tr class="ui-state-default"
@@ -92,8 +93,12 @@
           data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service
             PID</span></td>
         <td data-eht-text="componentRevision.state">ACTIVE</td>
-      </tr>
-
+        <td>
+          <ul class="icons">
+            <li class="dynhover ui-state-default ui-corner-all" title="Configure"><a
+              class="ui-icon ui-icon-wrench" data-eht-attr-href="appRoot + '/configMgr/' + ((servicePid != null) ? servicePid : cc.componentMetadata.componentId)">&nbsp;</a></li>
+          </ul>
+        </td>
       <tr>
         <td colspan="2">&nbsp;</td>
       </tr>
