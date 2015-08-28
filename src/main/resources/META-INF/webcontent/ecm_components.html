@@ -95,8 +95,10 @@
         <td data-eht-text="componentRevision.state">ACTIVE</td>
         <td>
           <ul class="icons">
+            <li class="dynhover ui-state-default ui-corner-all" title="Create new factory configuration" data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'"><a
+              class="ui-icon ui-icon-plusthick" data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
             <li class="dynhover ui-state-default ui-corner-all" title="Configure"><a
-              class="ui-icon ui-icon-wrench" data-eht-attr-href="appRoot + '/configMgr/' + ((servicePid != null) ? servicePid : cc.componentMetadata.componentId)">&nbsp;</a></li>
+              class="ui-icon ui-icon-wrench" data-eht-attr-href="appRoot + '/configMgr/' + ((servicePid != null) ? servicePid : cc.componentMetadata.componentId) + '?referer=' + pluginRoot">&nbsp;</a></li>
           </ul>
         </td>
       <tr>
