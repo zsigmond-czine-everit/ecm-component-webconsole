@@ -40,26 +40,28 @@
 }
 
 .stacktrace {
-  width: 65vw;
+  width: 55vw;
   overflow: auto;
 }
 
 .col_Name {
   width: 9vw;
 }
+
+.emptyHeader {
+background-repeat: no-repeat !important;
+background-position: right center !important;
+}
 </style>
-  <p class="statline ui-state-highlight"
-    data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM
-    component information: 5 container(s) in total.</p>
   <p class="statline ui-state-highlight">
-    <span data-eht-text="'ACTIVE: ' + numberOfComponetntsByState.active">ACTIVE: 0</span> <span
-      data-eht-text="'UNSATISFIED: ' + numberOfComponetntsByState.unsatisfied"
+    <span data-eht-text="'ACTIVE: ' + numberOfComponetntsByState.active + ';'">ACTIVE: 0</span> <span
+      data-eht-text="'UNSATISFIED: ' + numberOfComponetntsByState.unsatisfied + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.unsatisfied > 0 ? 'componentState_UNSATISFIED' : ''">UNSATISFIED:
-      0</span> <span data-eht-text="'FAILED: ' + numberOfComponetntsByState.failed"
+      0</span> <span data-eht-text="'FAILED: ' + numberOfComponetntsByState.failed + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.failed > 0 ? 'componentState_FAILED' : ''">FAILED:
-      0</span> <span data-eht-text="'STARTING: ' + numberOfComponetntsByState.starting"
+      0</span> <span data-eht-text="'STARTING: ' + numberOfComponetntsByState.starting + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.starting > 0 ? 'componentState_STARTING' : ''">STARTING:
-      0</span> <span data-eht-text="'STOPPING: ' + numberOfComponetntsByState.stopping"
+      0</span> <span data-eht-text="'STOPPING: ' + numberOfComponetntsByState.stopping + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.stopping > 0 ? 'componentState_STOPPING' : ''">STOPPING:
       0</span> <span data-eht-text="'INACTIVE: ' + numberOfComponetntsByState.inactive"
       data-eht-attrprepend-class="numberOfComponetntsByState.inactive > 0 ? 'componentState_INACTIVE' : ''">INACTIVE:
@@ -79,7 +81,28 @@
       <tr data-eht-render="cc.resources.length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
-        <th class="col_Name ui-widget-header header">Configuration</th>
+        <th class="col_Name ui-widget-header header">
+        <span style="float: left; margin-right: 1vw;">Configuration</span>
+        <ul class="icons" data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'">
+          <li class="dynhover ui-state-default ui-corner-all" title="Create new factory configuration" ><a
+              class="ui-icon ui-icon-plusthick" data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
+        </ul>
+        </th>
+      </tr>
+      <tr  data-eht-render="cc.resources.length == 0">
+      <th class="col_ServiceId ui-widget-header emptyHeader"></th>
+      <th class="col_Name ui-widget-header emptyHeader"></th>
+      <th class="col_Name ui-widget-header emptyHeader">
+        <span style="float: left; margin-right: 1vw;">Configuration</span>
+        <ul class="icons" data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'">
+          <li class="dynhover ui-state-default ui-corner-all" title="Create new factory configuration" ><a
+              class="ui-icon ui-icon-plusthick" data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
+        </ul>
+        <ul class="icons" data-eht-render="(cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE')">
+          <li class="dynhover ui-state-default ui-corner-all" title="Create new configuration" ><a
+              class="ui-icon ui-icon-plusthick" data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?referer=' + pluginRoot">&nbsp;</a></li>
+        </ul>
+        </th>
       </tr>
 
       <tr class="ui-state-default"
@@ -95,14 +118,10 @@
         <td data-eht-text="componentRevision.state">ACTIVE</td>
         <td>
           <ul class="icons">
-            <li class="dynhover ui-state-default ui-corner-all" title="Create new factory configuration" data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'"><a
-              class="ui-icon ui-icon-plusthick" data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
-            <li class="dynhover ui-state-default ui-corner-all" title="Configure"><a
+            <li class="dynhover ui-state-default ui-corner-all" title="Configure" data-eht-render="cc.componentMetadata.configurationPolicy.name() != 'IGNORE'"><a
               class="ui-icon ui-icon-wrench" data-eht-attr-href="appRoot + '/configMgr/' + ((servicePid != null) ? servicePid : cc.componentMetadata.componentId) + '?referer=' + pluginRoot">&nbsp;</a></li>
           </ul>
         </td>
-      <tr>
-        <td colspan="2">&nbsp;</td>
       </tr>
 
 
