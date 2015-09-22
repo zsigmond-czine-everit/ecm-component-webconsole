@@ -83,6 +83,7 @@
             <Import-Package>
               javax.servlet.*;version="[2.4,4)",
               org.osgi.service.metatype,
+              org.everit.osgi.ecm.*;version="[1.0,3)",
               *
             </Import-Package>
             <Export-Package />
@@ -108,7 +109,7 @@
     <dependency>
       <groupId>org.everit.osgi</groupId>
       <artifactId>org.everit.osgi.ecm.component.api</artifactId>
-      <version>1.0.0</version>
+      <version>2.0.0</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -119,7 +120,7 @@
     <dependency>
       <groupId>org.everit.expression</groupId>
       <artifactId>org.everit.expression.mvel</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.everit.templating</groupId>
@@ -129,7 +130,7 @@
     <dependency>
       <groupId>org.everit.templating</groupId>
       <artifactId>org.everit.templating.html</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.2</version>
     </dependency>
   </dependencies>
 </project>

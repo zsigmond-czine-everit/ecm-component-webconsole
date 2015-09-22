@@ -267,6 +267,7 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("templateUtil", new TemplateUtil());
     vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
     vars.put("numberOfComponetntsByState", numberOfComponetntsByState);
+    vars.put("consoleUtil", new ECMWebConsoleUtil());
 
     if (requestURI.equals(pluginRoot)) {
       componentsTemplate.render(writer, vars, "content");
