@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
@@ -123,12 +124,33 @@ public class TemplateUtil {
     StringBuilder sb = new StringBuilder();
     Set<Entry<String, Object>> clauseEntrySet = clauseMap.entrySet();
     boolean first = true;
+    boolean isEcmFactory = clauseMap
+        .containsKey(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
     for (Entry<String, Object> clauseEntry : clauseEntrySet) {
       if (!first) {
         sb.append(CLAUSE_SEPARATOR);
       }
-      sb.append(clauseEntry.getKey()).append(equalExpr)
-          .append(escapeClauseValue(toString(clauseEntry.getValue())));
+      if (clauseEntry.getKey().equals("service.id")) {
+        sb.append("<a href=\"services/" + clauseEntry.getValue()
+            + "\" class=\"reqCapLink\">service.id=" + clauseEntry.getValue() + "</a>");
+      } else
+        if (clauseEntry.getKey().equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
+        sb.append("<a href=\"#" + clauseEntry.getValue()
+            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
+            + clauseEntry.getValue() + "');return false;\">"
+            + ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID + "="
+            + clauseEntry.getValue() + "</a>");
+      } else if (!isEcmFactory
+          && clauseEntry.getKey().equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID)) {
+        sb.append("<a href=\"#" + clauseEntry.getValue()
+            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
+            + clauseEntry.getValue() + "');return false;\">"
+            + ECMComponentConstants.SERVICE_PROP_COMPONENT_ID + "="
+            + clauseEntry.getValue() + "</a>");
+      } else {
+        sb.append(clauseEntry.getKey()).append(equalExpr)
+            .append(escapeClauseValue(toString(clauseEntry.getValue())));
+      }
       first = false;
 
     }

@@ -53,8 +53,8 @@
   color: black;
 }
 
-.unsatsfiedRequirement {
-  color: red;
+.unsatisfiedRequirement {
+  color: red !important;
 }
 
 .headerConfigButton {
@@ -64,6 +64,19 @@
 
 .reqCapLink {
   color: blue !important;
+}
+
+.reqCapList {
+  font-family: monospace;
+}
+
+.reqCapList > li {
+  padding-left: 1em;
+  text-indent: -1em;
+}
+
+.reqCapList .reqCapList {
+  padding-left: 2em;
 }
 </style>
   <p class="statline ui-state-highlight">
@@ -154,37 +167,21 @@
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
           name[0]</td>
         <td>
-          <p data-eht-attr-class="(requirement.satisfied) ? null : unsatisfiedRequirement"
+          <p data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
-            ["Type: <span
-              data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
-              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span
-              data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
-            </span> "Directives: <span
-              data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
-            <span data-eht-render="requirement.attributes.size() > 0">"Attributes: <span
-              data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
-            </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
-              data-eht-var="['wiredCapability' : wire.capability]">"<span
-              data-eht-text="templateUtil.toString(wiredCapability)"></span><span
-              data-eht-render="(isServiceReq)"> (<a
-                data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
-                data-eht-attr-href="appRoot + '/services/' + serviceId"
-                data-eht-text="'Service: ' + serviceId" class="reqCapLink">Service: ServiceId</a>) <span
-                data-eht-var="['ecmComponentId' : consoleUtil.getId(wires)]"
-                data-eht-render="ecmComponentId != null"> (<a
-                  data-eht-attr-href="'#' + ecmComponentId"
-                  data-eht-text="'Component: ' + ecmComponentId"
-                  data-eht-attr-onclick="'componentLinkClick(event, \'' + ecmComponentId + '\');return false;'"
-                  class="reqCapLink">Component: ECMComponentId</a>)
-              </span></span> <span data-eht-render="(isBundleReq)"> (<a
-                data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
-                data-eht-attr-href="appRoot + '/bundles/' + bundleId"
-                data-eht-text="'Bundle: ' + bundleId"
-                data-eht-attr-title="wiredCapability.revision.symbolicName + ':' + wiredCapability.revision.version"
-                class="reqCapLink">Bundle: Bundle Id</a>)
-            </span>"<span data-eht-render="wireIndex < wires.length - 1">, </span>
-            </span>]"
+            <ul class="reqCapList">
+              <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
+              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
+              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Statemask" : "<span data-eht-text="">ACTIVE</span>",</li>
+              <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
+              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",</li>
+              <li>&nbsp;&nbsp;"Bound capabilities" : [
+                <ul class="reqCapList">
+                  <li data-eht-foreach="[({'wire', 'wireIndex'}) : wires]" data-eht-var="['wiredCapability' : wire.capability]">"<span data-eht-utext="templateUtil.toString(wiredCapability)"></span>" ]</li>
+                </ul>
+              </li>
+            </ul>
+            }
           </p>
         </td>
       </tr>
@@ -194,11 +191,14 @@
       </tr>
       <tr data-eht-foreach="['capability' : capabilities]">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" style="border: 0px none"><span
-          data-eht-text="templateUtil.toString(capability)">[...]</span> (<a
-          data-eht-var="['serviceId' : capability.getAttributes().get('service.id')]"
-          data-eht-attr-href="appRoot + '/services/' + serviceId"
-          data-eht-text="'Service: ' + serviceId" class="reqCapLink">Service: ServiceId</a>)</td>
+        <td class="aligntop" style="border: 0px none">
+          [
+          <ul class="reqCapList">
+            <li data-eht-utext="templateUtil.toString(capability)">[...]</li>
+            <li><a data-eht-var="['serviceId' : capability.getAttributes().get('service.id')]" data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="'Service: ' + serviceId" class="reqCapLink">Service: ServiceId</a></li>
+          </ul>
+          ]
+        </td>
       </tr>
       <tr>
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
