@@ -15,15 +15,33 @@
  */
 package org.everit.osgi.ecm.component.webconsole;
 
+import java.util.Map;
+
 import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
 import org.osgi.resource.Wire;
 
 /**
- * Util class for ECM web console.
+ * Utility class for ECM web console.
  *
  */
 public class ECMWebConsoleUtil {
+
+  private String getComponentId(final Map<String, Object> attributes) {
+    return (String) attributes.get(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID);
+  }
+
+  private String getComponentServicePID(final Map<String, Object> attributes) {
+    return (String) attributes.get(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
+  }
+
+  private String getEcmId(final Map<String, Object> attributes) {
+    String ecmId = getComponentServicePID(attributes);
+    if (ecmId == null) {
+      ecmId = getComponentId(attributes);
+    }
+    return ecmId;
+  }
 
   /**
    * Returns the ECM Id of a component, if it is an ECM component.
@@ -35,13 +53,7 @@ public class ECMWebConsoleUtil {
    *         is not an ECM component, null is returned.
    */
   public String getId(final ComponentRevision<?> revision) {
-    String ecmId = (String) revision.getProperties()
-        .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
-    if (ecmId == null) {
-      ecmId = (String) revision.getProperties()
-          .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID);
-    }
-    return ecmId;
+    return getEcmId(revision.getProperties());
   }
 
   /**
@@ -54,12 +66,6 @@ public class ECMWebConsoleUtil {
    *         is not an ECM component, null is returned.
    */
   public String getId(final Wire[] wires) {
-    String ecmId = (String) wires[0].getCapability().getAttributes()
-        .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
-    if (ecmId == null) {
-      ecmId = (String) wires[0].getCapability().getAttributes()
-          .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID);
-    }
-    return ecmId;
+    return getEcmId(wires[0].getCapability().getAttributes());
   }
 }
