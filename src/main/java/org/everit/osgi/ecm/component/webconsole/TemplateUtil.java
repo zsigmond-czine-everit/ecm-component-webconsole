@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 
@@ -130,7 +131,7 @@ public class TemplateUtil {
       if (!first) {
         sb.append(CLAUSE_SEPARATOR);
       }
-      if (clauseEntry.getKey().equals("service.id")) {
+      if (clauseEntry.getKey().equals(Constants.SERVICE_ID)) {
         sb.append("<a href=\"services/" + clauseEntry.getValue()
             + "\" class=\"reqCapLink\">service.id=" + clauseEntry.getValue() + "</a>");
       } else
