@@ -54,16 +54,16 @@
 }
 
 .unsatisfiedRequirement {
-  color: red !important;
+  color: red;
 }
 
-.headerConfigButton {
+ul.headerConfigButton {
   float: right;
-  margin-right: 1em !important;
+  margin-right: 1em;
 }
 
-.reqCapLink {
-  color: blue !important;
+a:link.reqCapLink {
+  color: blue;
 }
 
 .reqCapList {
@@ -167,7 +167,7 @@
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
           name[0]</td>
         <td>
-          <p data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
+          <div data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
             <ul class="reqCapList">
               <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
@@ -182,7 +182,7 @@
               </li>
             </ul>
             }
-          </p>
+          </div>
         </td>
       </tr>
       <tr data-eht-render="capabilities.size() > 0">
