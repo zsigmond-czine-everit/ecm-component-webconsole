@@ -62,7 +62,7 @@ ul.headerConfigButton {
   margin-right: 1em;
 }
 
-a:link.reqCapLink {
+a.reqCapLink:link, a.reqCapLink:visited {
   color: blue;
 }
 
@@ -77,6 +77,18 @@ a:link.reqCapLink {
 
 .reqCapList .reqCapList {
   padding-left: 2em;
+}
+
+tr > td.notFirstCapability {
+  padding-top: 1em;
+}
+
+tr > td.notLastCapability {
+  padding-bottom: 1em;
+}
+
+tr > td.lastCapability {
+  border-bottom: 0px;
 }
 </style>
   <p class="statline ui-state-highlight">
@@ -121,6 +133,7 @@ a:link.reqCapLink {
         <th class="col_Name ui-widget-header header">State</th>
         <th class="col_Name ui-widget-header header">Actions</th>
       </tr>
+      <tr data-eht-render="cc.resources.length == 0" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
 
       <tr data-eht-attr-id="consoleUtil.getId(componentRevision)" class="ui-state-default"
         data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
@@ -172,16 +185,16 @@ a:link.reqCapLink {
             <ul class="reqCapList">
               <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
               <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
-              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Statemask" : "<span data-eht-text="">ACTIVE</span>",</li>
               <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
               <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",</li>
-              <li>&nbsp;&nbsp;"Bound capabilities" : [
-                <ul class="reqCapList">
-                  <li data-eht-foreach="[({'wire', 'wireIndex'}) : wires]" data-eht-var="['wiredCapability' : wire.capability]">"<span data-eht-utext="templateUtil.toString(wiredCapability)"></span>" ]</li>
+              <li>&nbsp;&nbsp;"Bound" : {
+                <ul class="reqCapList" data-eht-foreach="[({'wire', 'wireIndex'}) : wires]" data-eht-var="['wiredCapability' : wire.capability]">
+                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version]" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
+                  <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.toString(wiredCapability)"></span>" }</li>
                 </ul>
               </li>
+              }
             </ul>
-            }
           </div>
         </td>
       </tr>
@@ -189,14 +202,12 @@ a:link.reqCapLink {
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Capabilities</td>
       </tr>
-      <tr data-eht-foreach="['capability' : capabilities]">
+      <tr data-eht-foreach="[({'capability', 'capabilityIndex'}) : capabilities]">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" style="border: 0px none">
-          [
+        <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size - 1) ? ' lastCapability' : '')">
           <ul class="reqCapList">
-            <li data-eht-utext="templateUtil.toString(capability)">[...]</li>
+            <li data-eht-utext="'[ &quot' + templateUtil.toString(capability) + '&quot ]'">[...]</li>
           </ul>
-          ]
         </td>
       </tr>
       <tr>
@@ -264,15 +275,29 @@ a:link.reqCapLink {
 
       }
 
-      function componentLinkClick(event, ecmId) {
-        event.preventDefault();
+      function componentLinkClickInner(href, ecmId) {
+        window.location = href;
         var selectorParam = "#" + ecmId.replace(/\./g, '\\.')
             + " .ui-icon-triangle-1-e";
         $(selectorParam).click();
-        var linkAnchor = event.target;
-        var href = linkAnchor.href;
-        window.location = href;
+        
         $("#" + ecmId.replace(/\./g, '\\.')).fadeOut(10).fadeIn();
       }
+      
+      function componentLinkClick(event, ecmId) {
+        event.preventDefault();
+        var linkAnchor = event.target;
+        var href = linkAnchor.href;
+        componentLinkClickInner(href, ecmId);
+      }
+      
+      $(function() {
+        var url = window.location.href;
+        var index = url.indexOf("#");
+        if(index > -1) {
+          var ecmId = url.substring(index + 1);
+          componentLinkClickInner(url, ecmId);
+        }
+      });
     </script>
 </div>
