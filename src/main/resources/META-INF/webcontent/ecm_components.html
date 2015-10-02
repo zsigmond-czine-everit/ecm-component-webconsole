@@ -40,28 +40,68 @@
 }
 
 .stacktrace {
-  width: 75vw;
+  width: 55vw;
   overflow: auto;
+  color: red;
 }
 
 .col_Name {
   width: 9vw;
 }
+
+.componentRevisionInfo {
+  color: black;
+}
+
+.unsatisfiedRequirement {
+  color: red;
+}
+
+ul.headerConfigButton {
+  float: right;
+  margin-right: 1em;
+}
+
+a.reqCapLink:link, a.reqCapLink:visited {
+  color: blue;
+}
+
+.reqCapList {
+  font-family: monospace;
+}
+
+.reqCapList > li {
+  padding-left: 1em;
+  text-indent: -1em;
+}
+
+.reqCapList .reqCapList {
+  padding-left: 2em;
+}
+
+tr > td.notFirstCapability {
+  padding-top: 1em;
+}
+
+tr > td.notLastCapability {
+  padding-bottom: 1em;
+}
+
+tr > td.lastCapability {
+  border-bottom: 0px;
+}
 </style>
-  <p class="statline ui-state-highlight"
-    data-eht-text="'ECM component information: ' + ccMap.size() + ' container(s) in total.'">ECM
-    component information: 5 container(s) in total.</p>
   <p class="statline ui-state-highlight">
-    <span data-eht-text="'ACTIVE: ' + numberOfComponetntsByState.active">ACTIVE: 0</span> <span
-      data-eht-text="'UNSATISFIED: ' + numberOfComponetntsByState.unsatisfied"
+    <span data-eht-text="'Active: ' + numberOfComponetntsByState.active + ';'">ACTIVE: 0</span> <span
+      data-eht-text="'Unsatisfied: ' + numberOfComponetntsByState.unsatisfied + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.unsatisfied > 0 ? 'componentState_UNSATISFIED' : ''">UNSATISFIED:
-      0</span> <span data-eht-text="'FAILED: ' + numberOfComponetntsByState.failed"
+      0</span> <span data-eht-text="'Failed: ' + numberOfComponetntsByState.failed + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.failed > 0 ? 'componentState_FAILED' : ''">FAILED:
-      0</span> <span data-eht-text="'STARTING: ' + numberOfComponetntsByState.starting"
+      0</span> <span data-eht-text="'Starting: ' + numberOfComponetntsByState.starting + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.starting > 0 ? 'componentState_STARTING' : ''">STARTING:
-      0</span> <span data-eht-text="'STOPPING: ' + numberOfComponetntsByState.stopping"
+      0</span> <span data-eht-text="'Stopping: ' + numberOfComponetntsByState.stopping + ';'"
       data-eht-attrprepend-class="numberOfComponetntsByState.stopping > 0 ? 'componentState_STOPPING' : ''">STOPPING:
-      0</span> <span data-eht-text="'INACTIVE: ' + numberOfComponetntsByState.inactive"
+      0</span> <span data-eht-text="'Inactive: ' + numberOfComponetntsByState.inactive"
       data-eht-attrprepend-class="numberOfComponetntsByState.inactive > 0 ? 'componentState_INACTIVE' : ''">INACTIVE:
       0</span>
   </p>
@@ -70,18 +110,32 @@
     <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
       data-eht-var="['cc' : ccMap.get(ccSR)]">
       <tr>
-        <th class="ui-widget-header" colspan="2"><a
+        <th class="ui-widget-header" colspan="3"><a
           data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
           data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> -
           <span data-eht-var="['mpp' : cc]"
-          data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component name</span></th>
+          data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component name</span>
+          <ul class="icons headerConfigButton"
+            data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'">
+            <li class="dynhover ui-state-default ui-corner-all"
+              title="Create new factory configuration"><a class="ui-icon ui-icon-plusthick"
+              data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
+          </ul>
+          <ul class="icons headerConfigButton"
+            data-eht-render="(cc.resources.length == 0) && ((cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE'))">
+            <li class="dynhover ui-state-default ui-corner-all" title="Create new configuration"><a
+              class="ui-icon ui-icon-wrench"
+              data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?referer=' + pluginRoot">&nbsp;</a></li>
+          </ul></th>
       </tr>
       <tr data-eht-render="cc.resources.length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
+        <th class="col_Name ui-widget-header header">Actions</th>
       </tr>
+      <tr data-eht-render="cc.resources.length == 0" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
 
-      <tr class="ui-state-default"
+      <tr data-eht-attr-id="consoleUtil.getId(componentRevision)" class="ui-state-default"
         data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
         data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
         data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '"
@@ -92,41 +146,23 @@
           data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service
             PID</span></td>
         <td data-eht-text="componentRevision.state">ACTIVE</td>
-      </tr>
-
-      <tr>
-        <td colspan="2">&nbsp;</td>
+        <td>
+          <ul class="icons">
+            <li class="dynhover ui-state-default ui-corner-all" title="Configure"
+              data-eht-render="cc.componentMetadata.configurationPolicy.name() != 'IGNORE'"><a
+              class="ui-icon ui-icon-wrench"
+              data-eht-attr-href="appRoot + '/configMgr/' + ((servicePid != null) ? servicePid : cc.componentMetadata.componentId) + '?referer=' + pluginRoot">&nbsp;</a></li>
+            <li class="dynhover ui-state-default ui-corner-all" title="Delete"
+              data-eht-render="cc.componentMetadata.configurationPolicy.name() != 'IGNORE'"><a
+              class="ui-icon ui-icon-trash"
+              data-eht-attr-onclick="'deleteConfig(\''+((servicePid != null) ? servicePid : cc.componentMetadata.componentId) +'\')'">&nbsp;</a></li>
+          </ul>
+        </td>
       </tr>
 
 
     </tbody>
   </table>
-
-  <script type="text/javascript" data-eht-inline="'text'">
-      function ecm_components_switchDetailView(htmlElement, containerServiceId,
-          servicePid) {
-        var jhe = $(htmlElement);
-        if (jhe.hasClass("ui-icon-triangle-1-e")) {
-          var queryURL = "@{pluginRoot}/" + containerServiceId;
-          if (servicePid != null) {
-            queryURL = queryURL + '/' + servicePid;
-          }
-          queryURL = queryURL + ".fragment";
-          jQuery.get(queryURL).done(function(data) {
-            jhe.parent().append(data);
-          }).fail(function(data) {
-            alert("Cannot show details. Probably data is out of date.")
-            return false;
-          });
-          jhe.removeClass("ui-icon-triangle-1-e");
-          jhe.addClass("ui-icon-triangle-1-s");
-        } else {
-          jhe.siblings(".componentRevisionInfo").remove()
-          jhe.removeClass("ui-icon-triangle-1-s");
-          jhe.addClass("ui-icon-triangle-1-e");
-        }
-      }
-    </script>
 
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="template_ctx.fragmentId == 'componentRevision'">
@@ -144,40 +180,35 @@
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
           name[0]</td>
         <td>
-          <p data-eht-attr-style="(requirement.satisfied) ? null : 'color: red;'"
+          <div data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
             data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
-            ["Type: <span
-              data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
-              Type</span>",<span data-eht-render="isBundleReq"> "Namespace: <span
-              data-eht-text="requirement.namespace">foo</span>", "Statemask: <span data-eht-text="">ACTIVE</span>",
-            </span> "Directives: <span
-              data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",
-            <span data-eht-render="requirement.attributes.size() > 0">"Attributes: <span
-              data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",
-            </span> "Bound capabilities: [<span data-eht-foreach="[({'wire', 'wireIndex'}) : wires]"
-              data-eht-var="['wiredCapability' : wire.capability]">"<span
-              data-eht-text="templateUtil.toString(wiredCapability)"></span><span
-              data-eht-render="isServiceReq"> (<a
-                data-eht-var="['serviceId' : wiredCapability.serviceReference.getProperty('service.id')]"
-                data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">ServiceId</a>)
-            </span><span data-eht-render="isBundleReq"> (<a
-                data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId]"
-                data-eht-attr-href="appRoot + '/bundles/' + bundleId" data-eht-text="bundleId"
-                data-eht-attr-title="wiredCapability.revision.symbolicName + ':' + wiredCapability.revision.version">Bundle
-                  Id</a>)
-            </span>"<span data-eht-render="wireIndex < wires.length - 1">, </span>
-            </span>]"
-          </p>
+            <ul class="reqCapList">
+              <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
+              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
+              <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
+              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",</li>
+              <li>&nbsp;&nbsp;"Bound" : {
+                <ul class="reqCapList" data-eht-foreach="[({'wire', 'wireIndex'}) : wires]" data-eht-var="['wiredCapability' : wire.capability]">
+                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version]" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
+                  <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.toString(wiredCapability)"></span>" }</li>
+                </ul>
+              </li>
+              }
+            </ul>
+          </div>
         </td>
       </tr>
       <tr data-eht-render="capabilities.size() > 0">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Capabilities</td>
       </tr>
-      <tr data-eht-foreach="['capability' : capabilities]">
+      <tr data-eht-foreach="[({'capability', 'capabilityIndex'}) : capabilities]">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" style="border: 0px none"
-          data-eht-text="templateUtil.toString(capability)">[...]</td>
+        <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size - 1) ? ' lastCapability' : '')">
+          <ul class="reqCapList">
+            <li data-eht-utext="'[ &quot' + templateUtil.toString(capability) + '&quot ]'">[...]</li>
+          </ul>
+        </td>
       </tr>
       <tr>
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
@@ -204,4 +235,69 @@
       </tr>
     </table>
   </div>
+
+  <script type="text/javascript" data-eht-inline="'text'">
+      function ecm_components_switchDetailView(htmlElement, containerServiceId,
+          servicePid) {
+        var jhe = $(htmlElement);
+        if (jhe.hasClass("ui-icon-triangle-1-e")) {
+          var queryURL = "@{pluginRoot}/" + containerServiceId;
+          if (servicePid != null) {
+            queryURL = queryURL + '/' + servicePid;
+          }
+          queryURL = queryURL + ".fragment";
+          jQuery.get(queryURL).done(function(data) {
+            jhe.parent().append(data);
+          }).fail(function(data) {
+            alert("Cannot show details. Probably data is out of date.")
+            return false;
+          });
+          jhe.removeClass("ui-icon-triangle-1-e");
+          jhe.addClass("ui-icon-triangle-1-s");
+        } else {
+          jhe.siblings(".componentRevisionInfo").remove()
+          jhe.removeClass("ui-icon-triangle-1-s");
+          jhe.addClass("ui-icon-triangle-1-e");
+        }
+      }
+
+      function deleteConfig(configId) {
+        $.ajax({
+          type : 'POST',
+          url : appRoot + '/configMgr/' + '/' + configId + '?apply=1&delete=1',
+          data : 'apply=1&delete=1',
+          dataType : 'json',
+          async : false
+        })
+        .done(function(){
+          location.reload();
+        });
+
+      }
+
+      function componentLinkClickInner(href, ecmId) {
+        window.location = href;
+        var selectorParam = "#" + ecmId.replace(/\./g, '\\.')
+            + " .ui-icon-triangle-1-e";
+        $(selectorParam).click();
+        
+        $("#" + ecmId.replace(/\./g, '\\.')).fadeOut(10).fadeIn();
+      }
+      
+      function componentLinkClick(event, ecmId) {
+        event.preventDefault();
+        var linkAnchor = event.target;
+        var href = linkAnchor.href;
+        componentLinkClickInner(href, ecmId);
+      }
+      
+      $(function() {
+        var url = window.location.href;
+        var index = url.indexOf("#");
+        if(index > -1) {
+          var ecmId = url.substring(index + 1);
+          componentLinkClickInner(url, ecmId);
+        }
+      });
+    </script>
 </div>
