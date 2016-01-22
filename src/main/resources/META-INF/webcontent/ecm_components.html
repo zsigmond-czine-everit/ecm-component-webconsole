@@ -18,7 +18,8 @@
 <!DOCTYPE html>
 
 <div data-eht-fragment="'content'" data-eht-render="'content'">
-  <style>
+  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/partialresponse.min.js'" src="partialresponse.min.js"></script>
+  <style type="text/css">
 #plugin_table .componentState_UNSATISFIED, .componentState_UNSATISFIED {
   color: darkorange;
 }
@@ -183,6 +184,9 @@ tr > td.lastCapability {
           <div data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
             data-eht-var="{'wires' : revision.componentContainer.getWiresByRequirement(requirement)}">
             <ul class="reqCapList">
+              <li class="dynhover ui-state-default ui-corner-all" title="Suggest"><a
+              class="ui-icon ui-icon-trash"
+              data-eht-attr-onclick="'doSuggestion(\'' + requirement.directives.get('objectClass') + '\')'">&nbsp;</a></li>
               <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
               <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
               <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
@@ -234,6 +238,9 @@ tr > td.lastCapability {
             data-eht-text="exceptionFormatter.format(revision.cause)" class="stacktrace">Some stacktrace</pre></td>
       </tr>
     </table>
+  </div>
+  
+  <div id="suggestion" data-eht-fragment="'suggestion'">
   </div>
 
   <script type="text/javascript" data-eht-inline="'text'">
@@ -299,5 +306,22 @@ tr > td.lastCapability {
           componentLinkClickInner(url, ecmId);
         }
       });
+      
+      function doSuggestion(oc) {
+        $.ajax('everit_ecm_component.fragment', {
+          data : {
+            action : "suggest",
+            objectClass : oc
+          },
+          headers : {
+            "x-partialresponse-ajax" : "true"
+          }
+        }).done(function(content) {
+
+          // Call partial response client code
+          everit.partialresponse.process(content);
+
+        });
+      }
     </script>
 </div>

@@ -37,8 +37,8 @@
 
   <properties>
     <projectpath>ecm-component-webconsole</projectpath>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <licenses>
@@ -88,6 +88,9 @@
               *
             </Import-Package>
             <Export-Package />
+            <Require-Capability>
+              everit.webresource;filter:="(name=org.everit.web.partialresponse)"
+            </Require-Capability>
           </instructions>
         </configuration>
       </plugin>
@@ -132,6 +135,11 @@
       <groupId>org.everit.templating</groupId>
       <artifactId>org.everit.templating.html</artifactId>
       <version>1.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.everit.web</groupId>
+      <artifactId>org.everit.web.partialresponse</artifactId>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
 

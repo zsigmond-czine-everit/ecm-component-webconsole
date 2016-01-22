@@ -19,9 +19,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -45,10 +47,14 @@ import org.everit.templating.CompiledTemplate;
 import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
 import org.everit.templating.text.TextTemplateCompiler;
+import org.everit.web.partialresponse.PartialResponseBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.util.tracker.ServiceTracker;
@@ -76,6 +82,8 @@ public class ECMWebConsoleServlet implements Servlet {
 
   private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
+  private final URL partialResponseJSURL;
+
   private ServletConfig servletConfig;
 
   /**
@@ -92,6 +100,7 @@ public class ECMWebConsoleServlet implements Servlet {
     this.containerTracker = containerTracker;
     this.bundleContext = bundleContext;
     classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+    partialResponseJSURL = resolvePartialResponseJSURL();
 
     ExpressionCompiler expressionCompiler = new JexlExpressionCompiler();
 
@@ -174,6 +183,22 @@ public class ECMWebConsoleServlet implements Servlet {
   public void destroy() {
   }
 
+  private void doAjax(final HttpServletRequest req, final HttpServletResponse resp
+  // , final Writer writer, final Map<String, Object> vars
+  ) {
+    String action = req.getParameter("action");
+    if (action == null) {
+      return;
+    }
+    if ("suggest".equals(action)) {
+      try (PartialResponseBuilder prb = new PartialResponseBuilder(resp)) {
+        // TODO
+        prb.append("#suggestion", "<p>Hello world!</p>");
+      }
+      // componentsTemplate.render(writer, vars, null);
+    }
+  }
+
   private ComponentContainer<?> findContainerByServiceId(
       final String serviceId) {
 
@@ -195,6 +220,25 @@ public class ECMWebConsoleServlet implements Servlet {
     return result;
   }
 
+  private BundleCapability findMatchingWiredCapability(final String filterString)
+      throws InvalidSyntaxException {
+    BundleWiring bundleWiring = bundleContext.getBundle().adapt(BundleWiring.class);
+    List<BundleWire> requiredWires = bundleWiring.getRequiredWires("everit.webresource");
+    Iterator<BundleWire> iterator = requiredWires.iterator();
+
+    Filter filter = bundleContext.createFilter(filterString);
+    BundleCapability result = null;
+    while (iterator.hasNext() && (result == null)) {
+      BundleWire wire = iterator.next();
+      BundleCapability capability = wire.getCapability();
+      if (filter.matches(capability.getAttributes())) {
+        result = capability;
+      }
+    }
+    return result;
+
+  }
+
   private ComponentRevision<?> findRevision(final ComponentRevision<?>[] revisions,
       final String servicePid) {
     ComponentRevision<?> result = null;
@@ -205,6 +249,30 @@ public class ECMWebConsoleServlet implements Servlet {
       }
     }
     return result;
+  }
+
+  private ClassLoader getClassLoaderByMatchingWire(final String filter)
+      throws InvalidSyntaxException {
+    BundleCapability capability = findMatchingWiredCapability(filter);
+
+    BundleWiring bundleWiring = capability.getRevision().getBundle().adapt(BundleWiring.class);
+    return bundleWiring.getClassLoader();
+  }
+
+  // TODO
+  /**
+   * Dummy.
+   *
+   * @param path
+   *          dummy
+   * @return dummy
+   */
+  public URL getResource(final String path) {
+    if (path.endsWith("partialresponse.min.js")) {
+      return partialResponseJSURL;
+    }
+
+    return null;
   }
 
   @Override
@@ -221,6 +289,11 @@ public class ECMWebConsoleServlet implements Servlet {
   public void init(final ServletConfig config) throws ServletException {
     servletConfig = config;
 
+  }
+
+  private boolean isAjaxRequest(final HttpServletRequest request) {
+    String ajaxHeader = request.getHeader("x-partialresponse-ajax");
+    return !((ajaxHeader == null) || Boolean.FALSE.toString().equalsIgnoreCase(ajaxHeader));
   }
 
   private String readResource(final String resourceName) {
@@ -242,9 +315,25 @@ public class ECMWebConsoleServlet implements Servlet {
 
   }
 
+  private URL resolvePartialResponseJSURL() {
+    ClassLoader cL;
+    try {
+      cL = getClassLoaderByMatchingWire("(name=org.everit.web.partialresponse)");
+    } catch (InvalidSyntaxException e) {
+      return null;
+    }
+
+    return cL.getResource(
+        "META-INF/resources/org.everit.web.resources/partialresponse/1.0.0/partialresponse.min.js");
+  }
+
   @Override
   public void service(final ServletRequest req, final ServletResponse resp)
       throws ServletException, IOException {
+
+    // if (!((req instanceof HttpServletRequest) && (resp instanceof HttpServletResponse))) {
+    // throw new ServletException("non-HTTP request or response");
+    // }
 
     HttpServletRequest httpReq = (HttpServletRequest) req;
     HttpServletResponse httpResp = (HttpServletResponse) resp;
@@ -269,8 +358,30 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("numberOfComponetntsByState", numberOfComponetntsByState);
     vars.put("consoleUtil", new ECMWebConsoleUtil());
 
-    if (requestURI.equals(pluginRoot)) {
+    // Iterator<Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>>> iterator =
+    // containerTracker
+    // .getTracked().entrySet().iterator();
+    // iterator.next();
+    // iterator.next();
+    // Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> entry =
+    // iterator.next();
+    // ComponentContainer<?> cc = entry.getValue();
+    // ComponentRevision<?>[] cccr = cc.getResources();
+    // cccr[0].getRequirements(null).get(0).getDirectives().get("objectClass");
+    // ServiceReference<ComponentContainer<?>> sr = entry.getKey();
+    // try {
+    // ServiceReference<?>[] srarray = bundleContext
+    // .getAllServiceReferences("org.osgi.service.cm.ConfigurationAdmin", null);
+    // Object service = bundleContext.getService(srarray[0]);
+    //
+    // } catch (InvalidSyntaxException e) {
+    // e.printStackTrace();
+    // }
+
+    if (!isAjaxRequest(httpReq) && requestURI.equals(pluginRoot)) {
       componentsTemplate.render(writer, vars, "content");
+    } else if (isAjaxRequest(httpReq)) {
+      doAjax(httpReq, httpResp/* , writer, vars */);
     } else if (requestURI.endsWith(FRAGMENT_URI_SUFFIX)) {
       addThreadViewerAvailablityToVars(vars);
 
